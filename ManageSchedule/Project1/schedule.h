@@ -15,7 +15,6 @@ public:
 	vector<TimeTable> schedule;//一个年级的总课表
 
 	Schedule();
-	static void set_team_num(int team_num);
 	void Init(vector<vector<ClassUnit> > &courses);
 	void CalRes();
 	void Mutate();

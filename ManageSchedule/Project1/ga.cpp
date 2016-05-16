@@ -170,7 +170,14 @@ GA::~GA() {
 }
 
 void GA::Init() {
-
+	population_ = 300;
+	for (int i = 0; i < 2; i++) {
+		generation[i] = vector<Schedule>(population_);
+	}
+	fits = vector<double>(population_, 0);
+	for (int i = 0; i < population_; i++) {
+		generation[0][i].Init();
+	}
 }
 
 void GA::Generate() {

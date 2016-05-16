@@ -149,6 +149,6 @@ int main() {
 	AddItime();
 	Out();
 	GA ga(teachersmap, coursesmap, teachers, classunits, courses, timetables);
-
+	ga.Generate();
 	return 0;
 }
