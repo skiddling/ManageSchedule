@@ -1,0 +1,11 @@
+﻿  ga.cpp
+d:\manageschedule\manageschedule\manageschedule\project1\ga.cpp(92): warning C4018: “<”: 有符号/无符号不匹配
+d:\manageschedule\manageschedule\manageschedule\project1\ga.cpp(94): warning C4018: “<”: 有符号/无符号不匹配
+  正在生成代码...
+  正在编译...
+  main.cpp
+d:\manageschedule\manageschedule\manageschedule\project1\main.cpp(85): warning C4018: “<”: 有符号/无符号不匹配
+d:\manageschedule\manageschedule\manageschedule\project1\main.cpp(87): warning C4018: “<”: 有符号/无符号不匹配
+  正在生成代码...
+  Project1.vcxproj -> D:\ManageSchedule\ManageSchedule\ManageSchedule\Debug\ManageSchedule.exe
+  Project1.vcxproj -> D:\ManageSchedule\ManageSchedule\ManageSchedule\Debug\ManageSchedule.pdb (Partial PDB)
