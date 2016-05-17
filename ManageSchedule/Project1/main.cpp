@@ -5,7 +5,9 @@ map<string, int> coursesmap;//record the id of the course
 vector<Teacher *> teachers;//the queue of all the teachers
 vector<ClassUnit *> classunits;//all the class units
 vector<Course *> courses;//the queue of all the courses
-vector<TimeTable> timetables;//所有的行政班
+vector<TimeTable> timetables;
+//所有的行政班的所有的课排成一个队列，并没有安排具体课的时间
+//每个班所有的课，只用了一个class_que
 
 void Init() {
 	coursesmap.clear();
@@ -68,19 +70,19 @@ void Out() {
 	ofstream fout("out.txt");
 	vector<Teacher *> :: iterator itt = teachers.begin();
 	for (; itt != teachers.end(); itt++) {
-		fout << (*itt)->teacher_id_ << ' ' << (*itt)->teacher_name_ << "\n";
+		fout << (*itt)->id_ << ' ' << (*itt)->teacher_name_ << "\n";
 	}
 	vector<Course *> :: iterator itc = courses.begin();
 	for (; itc != courses.end(); itc++) {
 		fout << (*itc)->course_id_ << ' ' << (*itc)->course_name_ << "\n";
 		itt = (*itc)->teacher_queue_.begin();
 		for (; itt != (*itc)->teacher_queue_.end(); itt++) {
-			fout << (*itt)->teacher_id_ << ' ' << (*itt)->teacher_name_ << "\n";
+			fout << (*itt)->id_ << ' ' << (*itt)->teacher_name_ << "\n";
 		}
 	}
 	vector<ClassUnit *> :: iterator itu = classunits.begin();
 	for (; itu != classunits.end(); itu++) {
-		fout << (*itu)->class_id_ << ' ' << (*itu)->class_name_ << ' ' << (*itu)->teacher_.teacher_id_ << ' ' << (*itu)->teacher_.teacher_name_ << "\n";
+		fout << (*itu)->class_id_ << ' ' << (*itu)->class_name_ << ' ' << (*itu)->teacher_.id_ << ' ' << (*itu)->teacher_.teacher_name_ << "\n";
 	}
 	for (int i = 0; i < timetables.size(); i++) {
 		fout << "class " << i << "\n";

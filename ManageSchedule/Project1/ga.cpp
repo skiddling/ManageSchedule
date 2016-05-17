@@ -73,7 +73,7 @@ const double step = 1.3;
 //	ofstream fout("out.txt");
 //	vector<Teacher *> ::iterator itt = teachers_.begin();
 //	for (; itt != teachers_.end(); itt++) {
-//		fout << (*itt)->teacher_id_ << ' ' << (*itt)->teacher_name_ << "\n";
+//		fout << (*itt)->id_ << ' ' << (*itt)->teacher_name_ << "\n";
 //	}
 //
 //	vector<Course *> ::iterator itc = courses_.begin();
@@ -81,13 +81,13 @@ const double step = 1.3;
 //		fout << (*itc)->course_id_ << ' ' << (*itc)->course_name_ << "\n";
 //		itt = (*itc)->teacher_queue_.begin();
 //		for (; itt != (*itc)->teacher_queue_.end(); itt++) {
-//			fout << (*itt)->teacher_id_ << ' ' << (*itt)->teacher_name_ << "\n";
+//			fout << (*itt)->id_ << ' ' << (*itt)->teacher_name_ << "\n";
 //		}
 //	}
 //
 //	vector<ClassUnit *> ::iterator itu = class_units_.begin();
 //	for (; itu != class_units_.end(); itu++) {
-//		fout << (*itu)->class_id_ << ' ' << (*itu)->class_name_ << ' ' << (*itu)->teacher_.teacher_id_ << ' ' << (*itu)->teacher_.teacher_name_ << "\n";
+//		fout << (*itu)->class_id_ << ' ' << (*itu)->class_name_ << ' ' << (*itu)->teacher_.id_ << ' ' << (*itu)->teacher_.teacher_name_ << "\n";
 //	}
 //	for (int i = 0; i < time_tables_.size(); i++) {
 //		fout << "class " << i << "\n";
@@ -176,7 +176,7 @@ void GA::Init() {
 	}
 	fits = vector<double>(population_, 0);
 	for (int i = 0; i < population_; i++) {
-		generation[0][i].Init();
+		generation[0][i].Init(teachers_map_, courses_map_, teachers_, class_units_, courses_, time_tables_);
 	}
 }
 

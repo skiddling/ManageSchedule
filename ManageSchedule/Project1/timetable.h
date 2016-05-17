@@ -15,19 +15,21 @@ public:
 	static int days_per_week_;//dpw for short
 	static int period_per_day_;//ppd for short
 	static int period_in_moring_;//pim for short
-	vector<vector<ClassUnit> > table_;//the real timetable of one class
+	vector<vector<ClassUnit *> > table_;//the real timetable of one class
 	vector<ClassUnit> class_que_;//all the classes in this class, they have their own address in memory
 	vector<vector<ClassUnit *> > course_classes;//record the point of each course's class's address, the address of the class_que's unit
-	
+	map<string, int> courses_map_;
 
 	TimeTable();
-	void Init(int courses_num);
+	void Init(map<string, int> &courses_map, TimeTable &time_table, vector<Teacher *> &teachers);
 	void AddContinue(int course_id, int continue_num);
 	void AddCant(int course_id, vector<pair<int, int> > &cant_time);
 	void AddItime(int course_id, vector<pair<int, int> > &itime);
 	void Mutate(double mp);
 	void Cross(TimeTable &timetable);
 	void CalCrash();
+	void GetRandTable(vector<vector<int> > &randtable);
+	void SetUnitInfo(ClassUnit &cu, int x, int y, vector<Teacher *> teachers);
 };
 
 
