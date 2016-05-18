@@ -24,14 +24,15 @@ void TimeTable::GetRandTable(vector<vector<int> > &randtable) {
 	}
 }
 
-void TimeTable::SetUnitInfo(ClassUnit &cu, int x, int y, vector<Teacher *> teachers) {
+void TimeTable::SetUnitInfo(ClassUnit &cu, int x, int y, vector<Teacher *> &teachers) {
+	table_[x][y] = &cu;
 	cu.class_time_.first = x;
 	cu.class_time_.second = y;
 	pair<int, int> pt = make_pair(x, y);
 	if (teachers[cu.teacher_.id_]->class_table_.find(pt) == teachers[cu.teacher_.id_]->class_table_.end()) {
 		teachers[cu.teacher_.id_]->class_table_[pt] = 1;
 	}
-	else teachers[cu.teacher_.id_]->class_table_[pu]++;
+	else teachers[cu.teacher_.id_]->class_table_[pt]++;
 }
 
 //让每一节课都按照科目放到班级课表当中的科目系统当中，方便添加限制条件
@@ -48,15 +49,10 @@ void TimeTable::Init(map<string, int> &courses_map, TimeTable &time_table, vecto
 	
 	//分配已经预先安排好的课程的时间
 	for (int i = 0; i < class_que_.size(); i++) {
-		ClassUnit cu = class_que_[i];
+		ClassUnit &cu = class_que_[i];
 		int d = cu.class_time_.first, p = cu.class_time_.second;
 		if (d != -1) {
-			table_[d][p] = &cu;
-			pair<int, int> pt = make_pair(d, p);
-			if (teachers[cu.teacher_.id_]->class_table_.find(pt) == teachers[cu.teacher_.id_]->class_table_.end()) {
-				teachers[cu.teacher_.id_]->class_table_[pt] = 1;
-			}
-			else teachers[cu.teacher_.id_]->class_table_[pt]++;
+			SetUnitInfo(cu, d, p, teachers);
 		}
 	}
 	
@@ -69,7 +65,7 @@ void TimeTable::Init(map<string, int> &courses_map, TimeTable &time_table, vecto
 		if (class_que_[i].continue_tag_ && (class_que_[i].class_time_.first == -1)) {
 			int d = rand() % days_per_week_;
 			int x = -1, y = -1;
-			while (x != -1){
+			while (x == -1){
 				while (!randtable[d].empty() && (randtable[d].back() != (period_per_day_ - 1)) && 
 					(randtable[d].back() != (period_in_moring_ - 1))&& table_[d][randtable[d].back()] != NULL){
 					randtable[d].pop_back();
@@ -80,19 +76,40 @@ void TimeTable::Init(map<string, int> &courses_map, TimeTable &time_table, vecto
 				else {
 					x = d;
 					y = randtable[d].back();
+					randtable[d].pop_back();
 				}
 			}
-			table_[x][y] = &class_que_[i];
-			table_[x][y + 1] = &class_que_[i + 1];
 			for (int j = 0; j < 2; j++) {
 				ClassUnit &cu = class_que_[i + j];
 				SetUnitInfo(cu, x, y + j, teachers);
 			}
+			i++;
 		}
 	}
 
 	GetRandTable(randtable);
 	//安排普通课程
+	for (int i = 0; i < class_que_.size(); i++) {
+		if ((class_que_[i].continue_tag_ == 0) && (class_que_[i].class_time_.first == -1)) {
+			int d = rand() % days_per_week_;
+			int x = -1, y = -1;
+			while (x == -1){
+				while ((!randtable[d].empty()) && (table_[d][randtable[d].back()] != NULL)){
+					randtable[d].pop_back();
+				}
+				if (randtable[d].empty()) {
+					d = (d + 1) % days_per_week_;
+				}
+				else {
+					x = d;
+					y = randtable[d].back();
+					randtable[d].pop_back();
+				}
+			}
+			ClassUnit &cu = class_que_[i];
+			SetUnitInfo(cu, x, y, teachers);
+		}
+	}
 }
 
 void TimeTable::AddContinue(int course_id, int continue_num) {

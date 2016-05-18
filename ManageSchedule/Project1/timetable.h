@@ -29,7 +29,7 @@ public:
 	void Cross(TimeTable &timetable);
 	void CalCrash();
 	void GetRandTable(vector<vector<int> > &randtable);
-	void SetUnitInfo(ClassUnit &cu, int x, int y, vector<Teacher *> teachers);
+	void SetUnitInfo(ClassUnit &cu, int x, int y, vector<Teacher *> &teachers);
 };
 
 
