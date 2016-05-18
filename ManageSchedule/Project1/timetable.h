@@ -25,7 +25,10 @@ public:
 	void AddContinue(int course_id, int continue_num);
 	void AddCant(int course_id, vector<pair<int, int> > &cant_time);
 	void AddItime(int course_id, vector<pair<int, int> > &itime);
-	void Mutate(double mp);
+	void DelUnit(ClassUnit &cu, vector<Teacher *> teachers);
+	void AddUnit(ClassUnit &cu, int x, int y, vector<Teacher *> teachers);
+	void Update(int x, int y, int nx, int ny, vector<Teacher *> teachers);
+	void Mutate(double mp, vector<Teacher *> teachers);
 	void Cross(TimeTable &timetable);
 	void CalCrash();
 	void GetRandTable(vector<vector<int> > &randtable);

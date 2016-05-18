@@ -24,8 +24,19 @@ void TimeTable::GetRandTable(vector<vector<int> > &randtable) {
 	}
 }
 
-void TimeTable::SetUnitInfo(ClassUnit &cu, int x, int y, vector<Teacher *> &teachers) {
-	table_[x][y] = &cu;
+void TimeTable::DelUnit(ClassUnit &cu, vector<Teacher *> teachers) {
+	int x = cu.class_time_.first, y = cu.class_time_.second;
+	pair<int, int> pt = make_pair(x, y);
+	if (teachers[cu.teacher_.id_]->class_table_[pt] > 1) {
+		teachers[cu.teacher_.id_]->class_table_[pt]--;
+	}
+	else {
+		map<pair<int, int>, int> ::iterator it = teachers[cu.teacher_.id_]->class_table_.find(pt);
+		teachers[cu.teacher_.id_]->class_table_.erase(it);
+	}
+}
+
+void TimeTable::AddUnit(ClassUnit &cu, int x, int y, vector<Teacher *> teachers) {
 	cu.class_time_.first = x;
 	cu.class_time_.second = y;
 	pair<int, int> pt = make_pair(x, y);
@@ -33,6 +44,12 @@ void TimeTable::SetUnitInfo(ClassUnit &cu, int x, int y, vector<Teacher *> &teac
 		teachers[cu.teacher_.id_]->class_table_[pt] = 1;
 	}
 	else teachers[cu.teacher_.id_]->class_table_[pt]++;
+}
+
+void TimeTable::SetUnitInfo(ClassUnit &cu, int x, int y, vector<Teacher *> &teachers) {
+	table_[x][y] = &cu;
+	AddUnit(cu, x, y, teachers);
+
 }
 
 //让每一节课都按照科目放到班级课表当中的科目系统当中，方便添加限制条件
@@ -134,8 +151,32 @@ void TimeTable::AddItime(int course_id, vector<pair<int, int> > &itime) {
 	}
 }
 
-void TimeTable::Mutate(double mp) {
+void TimeTable::Update(int x, int y, int nx, int ny, vector<Teacher *> teachers) {
+	if (table_[nx][ny] != NULL) {
+		ClassUnit &ncu = *table_[nx][ny];
+		DelUnit(ncu, teachers);
+		AddUnit(ncu, x, y, teachers);
+	}
+	ClassUnit &cu = *table_[x][y];
+	DelUnit(cu, teachers);
+	AddUnit(cu, nx, ny, teachers);
+}
 
+void TimeTable::Mutate(double mp, vector<Teacher *> teachers) {
+	for (int x = 0; x < days_per_week_; x++) {
+		for (int y = 0; y < period_per_day_; y++) {
+			if (table_[x][y] == NULL)continue;
+			if (table_[x][y]->alterable_ == 0)continue;
+			double rd = (double)rand() * rand() / kRandPlusRand;
+			if (rd > mp)continue;
+			int nx = rand() % days_per_week_, ny = rand() % period_per_day_;
+			while ((nx == x && ny == y) || (table_[nx][ny]->alterable_ == 0) || 
+				(table_[nx][ny] != NULL && table_[nx][ny]->teacher_.id_ == table_[x][y]->teacher_.id_)) {
+				nx = rand() % days_per_week_, ny = rand() % period_per_day_;
+			}
+			Update(x, y, nx, ny, teachers);
+		}
+	}
 }
 
 void TimeTable::Cross(TimeTable &timetable) {

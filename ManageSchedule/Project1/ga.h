@@ -38,5 +38,5 @@ public:
 	void Cross();
 	void Generate();
 	void CalFit();
-	void Transfrom(Schedule &s);
+	void Transform(Schedule &s);
 };

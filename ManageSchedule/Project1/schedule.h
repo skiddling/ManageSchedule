@@ -19,12 +19,11 @@ public:
 	vector<ClassUnit *> class_units_;
 	vector<Course *> courses_;
 
-	Schedule();
 	void Init(map<string, int> &teachers_map, map<string, int> &courses_map,
 		vector<Teacher *> &teachers, vector<ClassUnit *> &class_units,
 		vector<Course *> &courses, vector<TimeTable> &time_tables);
 	void CalRes();
-	void Mutate();
+	void Mutate(double mp);
 	void Cross();
 	bool operator < (Schedule &s) {
 		return crash_ == s.crash_ ? fitness_ > s.fitness_ : crash_ < s.crash_;
