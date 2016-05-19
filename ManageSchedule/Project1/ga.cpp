@@ -102,7 +102,29 @@ void GA::Generate() {
 }
 
 void GA::Select() {
-
+	int mxreward = 1;
+	max_fit_ = 0;
+	for (int i = 0; i < population_; i++) {
+		if (generation[0][i].crash_ <= 0)
+			mxreward = max(mxreward, generation[0][i].reward_);
+	}
+	for (int i = 0; i < population_; i++) {
+		generation[0][i].CalFitness(mxreward);
+		fits[i] = generation[0][i].fitness_;
+		max_fit_ = max(max_fit_, generation[0][i].fitness_);
+		//轮盘赌，形成总的适应度，然后让总的适应度成为轮盘赌的总值，然后计算每个适应度在当中所占的比例
+		if (i > 0)fits[i] += fits[i - 1];
+	}
+	for (int i = 0; i < population_; i++) {
+		fits[i] = fits[i] / fits.back();
+	}
+	for (int i = 0; i < population_; i++) {
+		//尽可能的分出各种概率的大小
+		double r = (double)rand() * rand() / kRandPlusRand;
+		int id = lower_bound(fits.begin(), fits.end(), r) - fits.begin();
+		//根据轮盘赌的结果来进行排序选择,选出来的可以是有重复的，但是就是要选出相同数量
+		generation[1][i] = generation[0][id];
+	}
 }
 
 void GA::Cross() {

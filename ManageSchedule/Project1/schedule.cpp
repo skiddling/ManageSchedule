@@ -28,3 +28,8 @@ void Schedule::Mutate(double mp) {
 void Schedule::Cross() {
 
 }
+
+void Schedule::CalFitness(int mxreward) {
+	fitness_ = 1.0 / (double)(1 + crash_);
+	if (crash_ <= 0)fitness_ = (double)reward_ / mxreward;
+}

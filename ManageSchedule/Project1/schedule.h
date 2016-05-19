@@ -25,6 +25,7 @@ public:
 	void CalRes();
 	void Mutate(double mp);
 	void Cross();
+	void CalFitness(int mxreward);
 	bool operator < (Schedule &s) {
 		return crash_ == s.crash_ ? fitness_ > s.fitness_ : crash_ < s.crash_;
 	}
