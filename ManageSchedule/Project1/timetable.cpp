@@ -179,8 +179,48 @@ void TimeTable::Mutate(double mp, vector<Teacher *> teachers) {
 	}
 }
 
-void TimeTable::Cross(TimeTable &timetable) {
+void TimeTable::Cross(TimeTable &timetable, double cp) {
+	vector<vector<ClassUnit *> > newtable = vector<vector<ClassUnit *> >(days_per_week_, vector<ClassUnit *>(period_per_day_, NULL));
+	map<ClassUnit *, int> othertable;
 
+	//选出来要进行交换的节次
+	for (int x = 0; x < days_per_week_; x++) {
+		for (int y = 0; y < period_per_day_; y++) {
+			ClassUnit *cu = table_[x][y];
+			if (cu == NULL)continue;
+			double r = (double)rand() * rand() / kRandPlusRand;
+			if (r < cp)othertable[cu] = 1;
+			else newtable[x][y] = cu;
+		}
+	}
+
+	//将能进行直接交换的节次就直接交换，并记录还没有利用起来的时间
+	vector<pair<int, int> > periods;
+	for (int x = 0; x < days_per_week_; x++) {
+		for (int y = 0; y < period_per_day_; y++) {
+			ClassUnit *cu = timetable.table_[x][y];
+			if (cu != NULL && othertable.find(cu) != othertable.end() && newtable[x][y] == NULL) {
+				newtable[x][y] = cu;
+				//othertable[cu] = 0;
+				othertable.erase(cu);
+			}
+			if (newtable[x][y] == NULL) {
+				periods.push_back(make_pair(x, y));
+			}
+		}
+	}
+	
+	for (int i = 0; i < periods.size(); i++) {
+		int j = rand() % periods.size();
+		if (i == j)continue;
+		swap(periods[i], periods[j]);
+	}
+
+	map<ClassUnit *, int> ::iterator it = othertable.begin();
+	for (int i = 0; it != othertable.end(); it++, i++) {
+		newtable[periods[i].first][periods[i].second] = it->first;
+	}
+	table_ = newtable;
 }
 
 void TimeTable::CalCrash() {

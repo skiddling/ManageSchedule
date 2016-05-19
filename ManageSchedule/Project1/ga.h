@@ -29,13 +29,11 @@ public:
 		vector<Course *> courses, vector<TimeTable> time_table);
 	~GA();
 	//void Out();
-	//void AddContinue();
-	//void AddCant();
-	//void AddItime();
 	void Init();
 	void Select();
 	void Mutate();
 	void Cross();
+	void Modify();
 	void Generate();
 	void CalFit();
 	void Transform(Schedule &s);

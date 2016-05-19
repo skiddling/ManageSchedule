@@ -54,10 +54,13 @@ void GA::Generate() {
 	int prvcrash = mxcrash;
 
 	while (t2 - t1 < mxoff) {
+		//会把0组的选择结果送到1组当中
 		Select(), cout << "selected\n";
 		Mutate(), cout << "mutated\n";
+		//cross之后会把1组的结果送到0组当中
 		Cross(), cout << "crossed\n";
 		generation[0] = generation[1];
+		Modify();
 		CalFit();
 		int micrash = 11111;
 		for (int i = 0; i < population_; i++) {
@@ -128,6 +131,19 @@ void GA::Select() {
 }
 
 void GA::Cross() {
+	for (int i = 0; i < population_; i++) {
+		double rd = (double)rand() * rand() / kRandPlusRand;
+		double mp = pof_cross_ * max_fit_ / generation[1][i].fitness_;
+		mp = min(mp, mxcp);
+		if (rd < mp) {
+			double r = (double)rand() * rand() / kRandPlusRand;
+			int j = lower_bound(fits.begin(), fits.end(), r) - fits.begin();
+			if (i == j) {
+				j = (j + 1) % population_;
+			}
+			generation[1][i].Cross(generation[1][j], mp);
+		}
+	}
 
 }
 
@@ -142,6 +158,10 @@ void GA::Mutate() {
 			generation[1][i].Mutate(mp);
 		}
 	}
+}
+
+void GA::Modify() {
+
 }
 
 void GA::CalFit() {

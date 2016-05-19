@@ -24,7 +24,7 @@ public:
 		vector<Course *> &courses, vector<TimeTable> &time_tables);
 	void CalRes();
 	void Mutate(double mp);
-	void Cross();
+	void Cross(Schedule &another, double cp);
 	void CalFitness(int mxreward);
 	bool operator < (Schedule &s) {
 		return crash_ == s.crash_ ? fitness_ > s.fitness_ : crash_ < s.crash_;

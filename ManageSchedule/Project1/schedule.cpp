@@ -25,8 +25,10 @@ void Schedule::Mutate(double mp) {
 
 }
 
-void Schedule::Cross() {
-
+void Schedule::Cross(Schedule &another, double cp) {
+	for (int i= 0; i < time_tables_.size(); i++) {
+		time_tables_[i].Cross(another.time_tables_[i], cp);
+	}
 }
 
 void Schedule::CalFitness(int mxreward) {
