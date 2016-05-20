@@ -22,7 +22,10 @@ public:
 	string teacher_name_;
 	map<int, vector<int> > class_que_;//记录该老师各个班级当中课在总的ClassUnit当中的序号
 	//map<int, int> teacher_time_table_;//记录教师每次课的时间，用于判断是否冲突
+	//以下三个map值都是从1开始，为0就是代表没有，需要删除该元素
 	map<pair<int, int>, int> class_table_;//记录教师每次时间段在哪个班级上课,方便最后的输入输出
+	map<pair<int, int>, int> room_time_;//记录该老师在某个教师某天是否上课，用于控制老师在一个班同一天不多上课
+	map<pair<int, int>, int> num_of_period_;//记录该老师在一周中上多少个半天，用于计算reward
 	Teacher();
 	Teacher(int teacher_id, string teacher_name);
 };

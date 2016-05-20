@@ -18,6 +18,7 @@ void Init() {
 	TimeTable::days_per_week_ = dpw;
 	TimeTable::period_in_moring_ = pim;
 	TimeTable::period_per_day_ = ppd;
+	ClassUnit::pim = pim;
 	int coursenum, classnum;
 	fin >> coursenum >> classnum;
 	string coursename;

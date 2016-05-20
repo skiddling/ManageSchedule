@@ -36,22 +36,6 @@ void TimeTable::DelUnit(ClassUnit &cu, vector<Teacher *> teachers) {
 	}
 }
 
-void TimeTable::AddUnit(ClassUnit &cu, int x, int y, vector<Teacher *> teachers) {
-	cu.class_time_.first = x;
-	cu.class_time_.second = y;
-	pair<int, int> pt = make_pair(x, y);
-	if (teachers[cu.teacher_.id_]->class_table_.find(pt) == teachers[cu.teacher_.id_]->class_table_.end()) {
-		teachers[cu.teacher_.id_]->class_table_[pt] = 1;
-	}
-	else teachers[cu.teacher_.id_]->class_table_[pt]++;
-}
-
-void TimeTable::SetUnitInfo(ClassUnit &cu, int x, int y, vector<Teacher *> &teachers) {
-	table_[x][y] = &cu;
-	AddUnit(cu, x, y, teachers);
-
-}
-
 //让每一节课都按照科目放到班级课表当中的科目系统当中，方便添加限制条件
 void TimeTable::Init(map<string, int> &courses_map, TimeTable &time_table, vector<Teacher *> &teachers) {
 	courses_map_ = courses_map;
@@ -69,7 +53,9 @@ void TimeTable::Init(map<string, int> &courses_map, TimeTable &time_table, vecto
 		ClassUnit &cu = class_que_[i];
 		int d = cu.class_time_.first, p = cu.class_time_.second;
 		if (d != -1) {
-			SetUnitInfo(cu, d, p, teachers);
+			//SetUnitInfo(cu, d, p, teachers);
+			table_[d][p] = &cu;
+			cu.AddUnit(d, p, teachers);
 		}
 	}
 	
@@ -97,8 +83,10 @@ void TimeTable::Init(map<string, int> &courses_map, TimeTable &time_table, vecto
 				}
 			}
 			for (int j = 0; j < 2; j++) {
-				ClassUnit &cu = class_que_[i + j];
-				SetUnitInfo(cu, x, y + j, teachers);
+				//ClassUnit &cu = class_que_[i + j];
+				//SetUnitInfo(cu, x, y + j, teachers);
+				table_[x][y + j] = &class_que_[i + j];
+				class_que_[i + j].AddUnit(x, y + j, teachers);
 			}
 			i++;
 		}
@@ -123,8 +111,10 @@ void TimeTable::Init(map<string, int> &courses_map, TimeTable &time_table, vecto
 					randtable[d].pop_back();
 				}
 			}
-			ClassUnit &cu = class_que_[i];
-			SetUnitInfo(cu, x, y, teachers);
+			//ClassUnit &cu = class_que_[i];
+			table_[x][y] = &class_que_[i];
+			//SetUnitInfo(cu, x, y, teachers);
+			class_que_[i].AddUnit(x, y, teachers);
 		}
 	}
 }
@@ -152,19 +142,16 @@ void TimeTable::AddItime(int course_id, vector<pair<int, int> > &itime) {
 }
 
 void TimeTable::Update(int x, int y, int nx, int ny, vector<Teacher *> teachers) {
-	if (table_[nx][ny] != NULL) {
-		ClassUnit &ncu = *table_[nx][ny];
-		DelUnit(ncu, teachers);
-		AddUnit(ncu, x, y, teachers);
+	if (table_[x][y] != NULL) {
+		table_[x][y]->DelUnit(teachers);
+		table_[x][y]->AddUnit(nx, ny, teachers);
 	}
-	ClassUnit &cu = *table_[x][y];
-	DelUnit(cu, teachers);
-	AddUnit(cu, nx, ny, teachers);
 }
 
 void TimeTable::Mutate(double mp, vector<Teacher *> teachers) {
 	for (int x = 0; x < days_per_week_; x++) {
 		for (int y = 0; y < period_per_day_; y++) {
+			//保证x,y不为空,但是nx,ny不保证
 			if (table_[x][y] == NULL)continue;
 			if (table_[x][y]->alterable_ == 0)continue;
 			double rd = (double)rand() * rand() / kRandPlusRand;
@@ -175,13 +162,16 @@ void TimeTable::Mutate(double mp, vector<Teacher *> teachers) {
 				nx = rand() % days_per_week_, ny = rand() % period_per_day_;
 			}
 			Update(x, y, nx, ny, teachers);
+			Update(nx, ny, x, y, teachers);
+			swap(table_[x][y], table_[nx][ny]);
 		}
 	}
 }
 
-void TimeTable::Cross(TimeTable &timetable, double cp) {
+void TimeTable::Cross(TimeTable &timetable, double cp, vector<Teacher *> teachers) {
 	vector<vector<ClassUnit *> > newtable = vector<vector<ClassUnit *> >(days_per_week_, vector<ClassUnit *>(period_per_day_, NULL));
-	map<ClassUnit *, int> othertable;
+	map<ClassUnit *, int> needcross;//存储表明需要交叉的节次
+	map<ClassUnit *, int> ::iterator it;
 
 	//选出来要进行交换的节次
 	for (int x = 0; x < days_per_week_; x++) {
@@ -189,7 +179,8 @@ void TimeTable::Cross(TimeTable &timetable, double cp) {
 			ClassUnit *cu = table_[x][y];
 			if (cu == NULL)continue;
 			double r = (double)rand() * rand() / kRandPlusRand;
-			if (r < cp)othertable[cu] = 1;
+			//如果符合概率就要被cross，否则就是直接被保留下来
+			if (r < cp)needcross[cu] = 1;
 			else newtable[x][y] = cu;
 		}
 	}
@@ -199,10 +190,12 @@ void TimeTable::Cross(TimeTable &timetable, double cp) {
 	for (int x = 0; x < days_per_week_; x++) {
 		for (int y = 0; y < period_per_day_; y++) {
 			ClassUnit *cu = timetable.table_[x][y];
-			if (cu != NULL && othertable.find(cu) != othertable.end() && newtable[x][y] == NULL) {
+			if (cu != NULL && needcross.find(cu) != needcross.end() && newtable[x][y] == NULL) {
 				newtable[x][y] = cu;
-				//othertable[cu] = 0;
-				othertable.erase(cu);
+				//needcross[cu] = 0;
+				it = needcross.find(cu);
+				needcross.erase(it);
+				Update(cu->class_time_.first, cu->class_time_.second, x, y, teachers);
 			}
 			if (newtable[x][y] == NULL) {
 				periods.push_back(make_pair(x, y));
@@ -216,9 +209,10 @@ void TimeTable::Cross(TimeTable &timetable, double cp) {
 		swap(periods[i], periods[j]);
 	}
 
-	map<ClassUnit *, int> ::iterator it = othertable.begin();
-	for (int i = 0; it != othertable.end(); it++, i++) {
+	it = needcross.begin();
+	for (int i = 0; it != needcross.end(); it++, i++) {
 		newtable[periods[i].first][periods[i].second] = it->first;
+		Update(it->first->class_time_.first, it->first->class_time_.second, periods[i].first, periods[i].second, teachers);
 	}
 	table_ = newtable;
 }

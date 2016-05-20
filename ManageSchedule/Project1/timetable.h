@@ -29,7 +29,7 @@ public:
 	void AddUnit(ClassUnit &cu, int x, int y, vector<Teacher *> teachers);
 	void Update(int x, int y, int nx, int ny, vector<Teacher *> teachers);
 	void Mutate(double mp, vector<Teacher *> teachers);
-	void Cross(TimeTable &timetable, double cp);
+	void Cross(TimeTable &timetable, double cp, vector<Teacher *> teachers);
 	void CalCrash();
 	void GetRandTable(vector<vector<int> > &randtable);
 	void SetUnitInfo(ClassUnit &cu, int x, int y, vector<Teacher *> &teachers);
