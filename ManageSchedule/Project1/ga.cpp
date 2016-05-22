@@ -161,11 +161,15 @@ void GA::Mutate() {
 }
 
 void GA::Modify() {
-
+	for (int i = 0; i < population_; i++) {
+		generation[0][i].Modify();
+	}
 }
 
 void GA::CalFit() {
-
+	for (int i = 0; i < population_; i++) {
+		generation[0][i].CalRes();
+	}
 }
 
 void GA::Transform(Schedule &s) {

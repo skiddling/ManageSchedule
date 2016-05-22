@@ -25,15 +25,14 @@ public:
 	void AddContinue(int course_id, int continue_num);
 	void AddCant(int course_id, vector<pair<int, int> > &cant_time);
 	void AddItime(int course_id, vector<pair<int, int> > &itime);
-	void DelUnit(ClassUnit &cu, vector<Teacher *> teachers);
-	void AddUnit(ClassUnit &cu, int x, int y, vector<Teacher *> teachers);
 	void Update(int x, int y, int nx, int ny, vector<Teacher *> teachers);
+	//mutate和cross这两个操作都要考虑到连堂课的可能性
 	void Mutate(double mp, vector<Teacher *> teachers);
-	void Cross(TimeTable &timetable, double cp, vector<Teacher *> teachers);
-	void CalCrash();
+	void Cross(TimeTable &timetable, double cp, vector<Teacher *> &teachers);
+	void Modify(vector<Teacher *> teachers);
 	void GetRandTable(vector<vector<int> > &randtable);
-	void SetUnitInfo(ClassUnit &cu, int x, int y, vector<Teacher *> &teachers);
+	bool CanMutate(int x, int y, int nx, int ny, vector<Teacher *> &teachers);
+	void SolveConflict(ClassUnit *cu, vector<Teacher *> teachers);
+	void UnitSwap(int x, int y, int nx, int ny, vector<Teacher *> &teachers);
+	bool CheckUnit(int x, int y, int nx, int ny, vector<Teacher *> &teachers);
 };
-
-
-
