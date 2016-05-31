@@ -264,9 +264,19 @@ void TimeTable::Modify(vector<Teacher *> teachers) {
 void TimeTable::SolveConflict(ClassUnit *cu, vector<Teacher *> teachers) {
 	vector<pair<int, int> > availtime = vector<pair<int, int> >(0);
 	int tid = cu->teacher_.id_;
+	//这个有空时间只是说这些时间这个老师是不上课的，但是在具体修正的时候我们要考虑一个班一个老师在一天内只能去一次
+	//所以我们在添加这个空余时间的时候我们需要对这些时间进行判断
 	map<pair<int, int>, bool>::iterator  it = teachers[tid]->available_time.begin();
+	int cid = cu->class_id_;
+	pair<int, int> tu, tn = make_pair(cu->class_time_.first, cu->class_id_);
 	for (; it != teachers[tid]->available_time.end(); it++) {
-		availtime.push_back(it->first);
+		tu = make_pair(it->first, cid);
+		if ((it->first.first == cu->class_time_.first && teachers[tid]->room_time_[tn] == 1)
+			|| teachers[tid]->room_time_.find(tu) == teachers[tid]->room_time_.end()) {
+			//情况1：该班级该天该老师只是在这个班上了一次课，那么这个空余时间可以是该天的其他空余的时间段
+			//情况2：其他老师没有在该班级上过课的那几天当中的空余的时间段
+			availtime.push_back(it->first);
+		}
 	}
 	for (int i = 0; i < availtime.size(); i++) {
 		int j = rand() % availtime.size();
