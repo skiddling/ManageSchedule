@@ -144,6 +144,32 @@ void AddItime() {
 	fin.close();
 }
 
+//输出结果
+void Output(Schedule res) {
+	ofstream fout("out.txt");
+	string name;
+	for (int i = 0; i < res.time_tables_.size(); i++) {
+		fout << "班级 " << i << endl << "     ";
+		for (int x = 0; x < TimeTable::days_per_week_; x++) {
+			fout << "星期" << x + 1 << "     ";
+		}
+		fout << endl;
+		for (int y = 0; y < TimeTable::period_per_day_; y++) {	
+			fout << y + 1 << "  ";
+			for (int x = 0; x < TimeTable::days_per_week_; x++) {
+				if (res.time_tables_[i].table_[x][y] != NULL) {
+					name = res.time_tables_[i].table_[x][y]->teacher_.teacher_name_;
+					fout << name << string(11 - name.length(), ' ');
+				}
+				else fout << "     ";
+			}
+			fout << endl;
+		}
+		fout << endl;
+	}
+	fout.close();
+}
+
 int main() {
 	srand((unsigned int)time(0));
 	Init();
@@ -153,5 +179,6 @@ int main() {
 	Out();
 	GA ga(teachersmap, coursesmap, teachers, classunits, courses, timetables);
 	ga.Generate();
+	Output(ga.res);
 	return 0;
 }

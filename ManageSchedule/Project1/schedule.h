@@ -15,6 +15,7 @@ public:
 	vector<TimeTable> time_tables_;//一个年级的总课表
 	map<string, int> teachers_map_;
 	map<string, int> courses_map_;
+
 	vector<Teacher *> teachers_;
 	vector<ClassUnit *> class_units_;
 	vector<Course *> courses_;
