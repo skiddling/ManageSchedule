@@ -69,10 +69,13 @@ void Init() {
 
 void Out() {
 	ofstream fout("out.txt");
+	fout << "输出老师的个数和老师各自的序号" << endl;
 	vector<Teacher *> :: iterator itt = teachers.begin();
 	for (; itt != teachers.end(); itt++) {
 		fout << (*itt)->id_ << ' ' << (*itt)->teacher_name_ << "\n";
 	}
+	fout << endl << endl;
+	fout << "输出每个科目的下有哪些老师" << endl;
 	vector<Course *> :: iterator itc = courses.begin();
 	for (; itc != courses.end(); itc++) {
 		fout << (*itc)->course_id_ << ' ' << (*itc)->course_name_ << "\n";
@@ -80,11 +83,16 @@ void Out() {
 		for (; itt != (*itc)->teacher_queue_.end(); itt++) {
 			fout << (*itt)->id_ << ' ' << (*itt)->teacher_name_ << "\n";
 		}
+		fout << endl;
 	}
+	fout << endl << endl;
+	fout << "输出所有的班级当中所有的课程数量" << endl;
 	vector<ClassUnit *> :: iterator itu = classunits.begin();
 	for (; itu != classunits.end(); itu++) {
 		fout << (*itu)->class_id_ << ' ' << (*itu)->class_name_ << ' ' << (*itu)->teacher_.id_ << ' ' << (*itu)->teacher_.teacher_name_ << "\n";
 	}
+	fout << endl << endl;
+	fout << "输出每个班级当中有哪些老师上课，上多少次课" << endl;
 	for (int i = 0; i < timetables.size(); i++) {
 		fout << "class " << i << "\n";
 		for (int j = 0;j < timetables[i].class_que_.size(); j++) {
@@ -92,6 +100,7 @@ void Out() {
 				<< timetables[i].class_que_[j].class_name_ << ' ' 
 				<< timetables[i].class_que_[j].teacher_.teacher_name_ << "\n";
 		}
+		fout << endl;
 	}
 	fout.close();
 }
@@ -146,7 +155,7 @@ void AddItime() {
 
 //输出结果
 void Output(Schedule res) {
-	ofstream fout("out.txt");
+	ofstream fout("res.txt");
 	string name;
 	for (int i = 0; i < res.time_tables_.size(); i++) {
 		fout << "班级 " << i << endl << "     ";
@@ -177,6 +186,9 @@ int main() {
 	AddCant();
 	AddItime();
 	Out();
+	cout << "end of init\n";
+	system("PAUSE");
+	return 0;
 	GA ga(teachersmap, coursesmap, teachers, classunits, courses, timetables);
 	ga.Generate();
 	Output(ga.res);

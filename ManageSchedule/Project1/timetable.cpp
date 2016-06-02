@@ -270,7 +270,7 @@ void TimeTable::SolveConflict(ClassUnit *cu, vector<Teacher *> teachers) {
 	int cid = cu->class_id_;
 	pair<int, int> tu, tn = make_pair(cu->class_time_.first, cu->class_id_);
 	for (; it != teachers[tid]->available_time.end(); it++) {
-		tu = make_pair(it->first, cid);
+		tu = make_pair(it->first.first, cid);
 		if ((it->first.first == cu->class_time_.first && teachers[tid]->room_time_[tn] == 1)
 			|| teachers[tid]->room_time_.find(tu) == teachers[tid]->room_time_.end()) {
 			//情况1：该班级该天该老师只是在这个班上了一次课，那么这个空余时间可以是该天的其他空余的时间段
@@ -283,7 +283,7 @@ void TimeTable::SolveConflict(ClassUnit *cu, vector<Teacher *> teachers) {
 		if (i == j)continue;
 		swap(availtime[i], availtime[j]);
 	}
-	ClassUnit *ct;
+	//ClassUnit *ct;
 	int x, y, nx, ny, tag;
 	for (int i = 0; i < availtime.size(); i++) {
 		x = cu->class_time_.first, nx = availtime[i].first;
