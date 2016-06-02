@@ -284,6 +284,6 @@ paket-files/
 *.sln.iml
 
 #about .vcxproj
-.vcxproj
-.filters
-.sln
+*.vcxproj
+*.filters
+*.sln
