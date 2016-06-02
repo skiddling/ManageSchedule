@@ -5,8 +5,13 @@ int TimeTable::period_in_moring_ = 0;
 int TimeTable::period_per_day_ = 0;
 
 TimeTable::TimeTable() {
+}
+
+TimeTable::TimeTable(map<string, int> courses_map) {
+	courses_map_ = courses_map;
 	class_que_ = vector<ClassUnit>(0);
-	//table_ = vector<vector<ClassUnit> >(days_per_week_, vector<ClassUnit>(period_per_day_));
+	table_ = vector<vector<ClassUnit *> >(days_per_week_, vector<ClassUnit *>(period_per_day_, NULL));
+	course_classes = vector<vector<ClassUnit *> >(courses_map.size());
 }
 
 void TimeTable::GetRandTable(vector<vector<int> > &randtable) {
@@ -50,7 +55,8 @@ void TimeTable::Init(map<string, int> &courses_map, TimeTable &time_table, vecto
 	//生成随机时间表
 	vector<vector<int> > randtable;
 	GetRandTable(randtable);
-
+	//cout << "timetable.init\n";
+	//system("PAUSE");
 	//安排连堂课,注意越界
 	for (int i = 0; i < class_que_.size(); i++) {
 		if (class_que_[i].continue_tag_ && (class_que_[i].class_time_.first == -1)) {
@@ -79,7 +85,8 @@ void TimeTable::Init(map<string, int> &courses_map, TimeTable &time_table, vecto
 			i++;
 		}
 	}
-
+	//cout << "timetable.init";
+	//system("PAUSE");
 	GetRandTable(randtable);
 	//安排普通课程
 	for (int i = 0; i < class_que_.size(); i++) {
@@ -105,6 +112,8 @@ void TimeTable::Init(map<string, int> &courses_map, TimeTable &time_table, vecto
 			class_que_[i].AddUnit(x, y, teachers);
 		}
 	}
+	//cout << "timetable.init\n";
+	//system("PAUSE");
 }
 
 void TimeTable::AddContinue(int course_id, int continue_num) {

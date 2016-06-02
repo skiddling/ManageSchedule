@@ -33,35 +33,65 @@ GA::~GA() {
 	}
 }
 
+void test(vector<Schedule> gen) {
+	for (int i = 0; i < gen.size(); i++) {
+		for (int j = 0; j < gen[i].time_tables_.size(); j++) {
+			cout << gen[i].time_tables_[j].table_.size();
+		}
+		system("PAUSE");
+	}
+}
+
 void GA::Init() {
+	cout << teachers_map_.size() << "  " << courses_map_.size() <<
+		"  " << teachers_.size() << "  " << class_units_.size() <<
+		"  " << time_tables_.size() << endl;
+	//system("PAUSE");
 	population_ = 300;
 	for (int i = 0; i < 2; i++) {
 		generation[i] = vector<Schedule>(population_);
 	}
+	//system("PAUSE");
 	fits = vector<double>(population_, 0);
 	for (int i = 0; i < population_; i++) {
 		generation[0][i].Init(teachers_map_, courses_map_, teachers_, class_units_, courses_, time_tables_);
+		for (int j = 0; j < generation[0][i].time_tables_.size(); j++) {
+			cout << generation[0][i].time_tables_[j].table_.size();
+		}
+		//system("PAUSE");
+		//cout << i << endl;
 	}
+	//cout << "GA.init\n";
+	//test(generation[0]);
+	//system("PAUSE");
 }
 
 void GA::Generate() {
 	Init();
+	//test(generation[0]);
+	//system("PAUSE");
 	res = Schedule();
 	res.crash_ = mxcrash;
 	res.reward_ = 0;
 	int t1 = clock(), t2 = t1, t3 = t1;
 	int mxoff = timeout;
 	int prvcrash = mxcrash;
-
+	cout << "start generate\n";
+	cout << t1 << endl;
+	//system("PAUSE");
 	while (t2 - t1 < mxoff) {
 		//会把0组的选择结果送到1组当中
 		Select(), cout << "selected\n";
 		Mutate(), cout << "mutated\n";
 		//cross之后会把1组的结果送到0组当中
 		Cross(), cout << "crossed\n";
+		//test(generation[1]);
 		generation[0] = generation[1];
+		//test(generation[0]);
 		Modify();
+		//break;
 		CalFit();
+		break;
 		int micrash = 11111;
 		for (int i = 0; i < population_; i++) {
 			Transform(generation[0][i]);
@@ -109,7 +139,8 @@ void GA::Select() {
 	max_fit_ = 0;
 	for (int i = 0; i < population_; i++) {
 		if (generation[0][i].crash_ <= 0)
-			mxreward = max(mxreward, generation[0][i].reward_);
+			//mxreward = max(mxreward, generation[0][i].reward_);
+			mxreward = min(mxreward, generation[0][i].reward_);
 	}
 	for (int i = 0; i < population_; i++) {
 		generation[0][i].CalFitness(mxreward);
@@ -164,6 +195,7 @@ void GA::Modify() {
 	for (int i = 0; i < population_; i++) {
 		generation[0][i].Modify();
 	}
+	system("PAUSE");
 }
 
 void GA::CalFit() {
@@ -173,5 +205,6 @@ void GA::CalFit() {
 }
 
 void GA::Transform(Schedule &s) {
-	
+	if (res.crash_ > s.crash_ || (res.crash_ == s.crash_ && res.reward_ > s.reward_))
+		res = s;
 }

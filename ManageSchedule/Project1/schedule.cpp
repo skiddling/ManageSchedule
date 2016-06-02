@@ -2,18 +2,25 @@
 
 void Schedule::Init(map<string, int> &teachers_map, map<string, int> &courses_map,
 	vector<Teacher *> &teachers, vector<ClassUnit *> &class_units,
-	vector<Course *> &courses, vector<TimeTable> &time_tables) {
+	vector<Course *> &courses, vector<TimeTable> &time_tables){//:
+	/*teachers_map_(teachers_map), courses_map_(courses_map),
+	teachers_(teachers), courses_(courses): {*/
 	teachers_map_ = teachers_map;
 	courses_map_ = courses_map;
 	teachers_ = teachers;
 	courses_ = courses;
-	time_tables_ = time_tables;
+	//time_tables_ = time_tables;
 	for (int i = 0; i < teachers.size(); i++) {
 		teachers[i]->InitAvailable(TimeTable::days_per_week_, TimeTable::period_per_day_);
 	}
+	//cout << "schedule.init\n";
+	//system("PAUSE");
 	for (int i = 0; i < time_tables_.size(); i++) {
 		time_tables[i].Init(courses_map, time_tables_[i], teachers_);
+		//cout << time_tables[i].table_.size();
 	}
+	//cout << "schedule.init\n";
+	//system("PAUSE");
 }
 
 void Schedule::CalRes() {
@@ -48,6 +55,10 @@ void Schedule::CalRes() {
 }
 
 void Schedule::Modify() {
+	/*for (int i = 0; i < time_tables_.size(); i++) {
+		cout << time_tables_[i].table_.size() << endl;
+	}
+	system("PAUSE");*/
 	for (int i = 0; i < time_tables_.size(); i++) {
 		time_tables_[i].Modify(teachers_);
 	}

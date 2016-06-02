@@ -21,6 +21,7 @@ public:
 	map<string, int> courses_map_;
 
 	TimeTable();
+	TimeTable(map<string, int> courses_map);
 	void Init(map<string, int> &courses_map, TimeTable &time_table, vector<Teacher *> &teachers);
 	void AddContinue(int course_id, int continue_num);
 	void AddCant(int course_id, vector<pair<int, int> > &cant_time);

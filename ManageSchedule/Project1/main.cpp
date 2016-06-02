@@ -60,6 +60,7 @@ void Init() {
 	fin.close();
 	
 	//put the class unit to their each class
+	//timetables = vector<TimeTable>(classnum, TimeTable(coursesmap));
 	timetables = vector<TimeTable>(classnum);
 	vector<ClassUnit *> ::iterator itc = classunits.begin();
 	for (; itc != classunits.end(); itc++) {
@@ -182,13 +183,13 @@ void Output(Schedule res) {
 int main() {
 	srand((unsigned int)time(0));
 	Init();
-	AddContinue();
-	AddCant();
-	AddItime();
+	//AddContinue();
+	//AddCant();
+	//AddItime();
 	Out();
 	cout << "end of init\n";
-	system("PAUSE");
-	return 0;
+	//system("PAUSE");
+	//return 0;
 	GA ga(teachersmap, coursesmap, teachers, classunits, courses, timetables);
 	ga.Generate();
 	Output(ga.res);
