@@ -282,3 +282,8 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+#about .vcxproj
+.vcxproj
+.filters
+.sln
