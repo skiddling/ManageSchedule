@@ -54,10 +54,12 @@ void GA::Init() {
 	//system("PAUSE");
 	fits = vector<double>(population_, 0);
 	for (int i = 0; i < population_; i++) {
-		generation[0][i].Init(teachers_map_, courses_map_, teachers_, class_units_, courses_, time_tables_);
-		for (int j = 0; j < generation[0][i].time_tables_.size(); j++) {
-			cout << generation[0][i].time_tables_[j].table_.size();
-		}
+		generation[0][i].Init(teachers_, class_units_, courses_, time_tables_);
+		//cout << "ga.init\n";
+		/*for (int j = 0; j < generation[0][i].time_tables_.size(); j++) {
+			cout << generation[0][i].time_tables_[j].table_.size() << endl;
+			cout << "ga.init.getsize\n";
+		}*/
 		//system("PAUSE");
 		//cout << i << endl;
 	}
@@ -78,7 +80,7 @@ void GA::Generate() {
 	int prvcrash = mxcrash;
 	cout << "start generate\n";
 	cout << t1 << endl;
-	//system("PAUSE");
+	system("PAUSE");
 	while (t2 - t1 < mxoff) {
 		//会把0组的选择结果送到1组当中
 		Select(), cout << "selected\n";
@@ -195,7 +197,7 @@ void GA::Modify() {
 	for (int i = 0; i < population_; i++) {
 		generation[0][i].Modify();
 	}
-	system("PAUSE");
+	//system("PAUSE");
 }
 
 void GA::CalFit() {

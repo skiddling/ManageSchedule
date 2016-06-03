@@ -9,19 +9,19 @@ class Schedule
 {
 public:
 	//static int team_num_;
+	static map<string, int> courses_map_;
+	static map<string, int> teachers_map_;
 	int crash_;
 	int reward_;
 	double fitness_;
 	vector<TimeTable> time_tables_;//一个年级的总课表
-	map<string, int> teachers_map_;
-	map<string, int> courses_map_;
-
+	//map<string, int> teachers_map_;
+	//map<string, int> courses_map_;
 	vector<Teacher *> teachers_;
 	vector<ClassUnit *> class_units_;
 	vector<Course *> courses_;
 
-	void Init(map<string, int> &teachers_map, map<string, int> &courses_map,
-		vector<Teacher *> &teachers, vector<ClassUnit *> &class_units,
+	void Init(vector<Teacher *> &teachers, vector<ClassUnit *> &class_units,
 		vector<Course *> &courses, vector<TimeTable> &time_tables);
 	void CalRes();
 	void Mutate(double mp);

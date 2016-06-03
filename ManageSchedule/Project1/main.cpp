@@ -58,7 +58,9 @@ void Init() {
 		}
 	}
 	fin.close();
-	
+	Schedule::teachers_map_ = teachersmap;
+	Schedule::courses_map_ = coursesmap;
+	TimeTable::courses_map_ = coursesmap;
 	//put the class unit to their each class
 	//timetables = vector<TimeTable>(classnum, TimeTable(coursesmap));
 	timetables = vector<TimeTable>(classnum);

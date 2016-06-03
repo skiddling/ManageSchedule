@@ -1,12 +1,14 @@
 #include "schedule.h"
 
-void Schedule::Init(map<string, int> &teachers_map, map<string, int> &courses_map,
-	vector<Teacher *> &teachers, vector<ClassUnit *> &class_units,
+map<string, int> Schedule::courses_map_;
+map<string, int> Schedule::teachers_map_;
+
+void Schedule::Init(vector<Teacher *> &teachers, vector<ClassUnit *> &class_units,
 	vector<Course *> &courses, vector<TimeTable> &time_tables){//:
 	/*teachers_map_(teachers_map), courses_map_(courses_map),
 	teachers_(teachers), courses_(courses): {*/
-	teachers_map_ = teachers_map;
-	courses_map_ = courses_map;
+	//teachers_map_ = teachers_map;
+	//courses_map_ = courses_map;
 	teachers_ = teachers;
 	courses_ = courses;
 	//time_tables_ = time_tables;
@@ -15,11 +17,12 @@ void Schedule::Init(map<string, int> &teachers_map, map<string, int> &courses_ma
 	}
 	//cout << "schedule.init\n";
 	//system("PAUSE");
-	for (int i = 0; i < time_tables_.size(); i++) {
-		time_tables[i].Init(courses_map, time_tables_[i], teachers_);
+	time_tables_ = vector<TimeTable>(time_tables.size());
+	for (int i = 0; i < time_tables.size(); i++) {
+		time_tables_[i].Init(time_tables[i], teachers_);
 		//cout << time_tables[i].table_.size();
 	}
-	//cout << "schedule.init\n";
+	cout << "schedule.init\n";
 	//system("PAUSE");
 }
 
