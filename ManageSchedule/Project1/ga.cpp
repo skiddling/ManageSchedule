@@ -33,15 +33,6 @@ GA::~GA() {
 	}
 }
 
-void test(vector<Schedule> gen) {
-	for (int i = 0; i < gen.size(); i++) {
-		for (int j = 0; j < gen[i].time_tables_.size(); j++) {
-			cout << gen[i].time_tables_[j].table_.size();
-		}
-		system("PAUSE");
-	}
-}
-
 void GA::Init() {
 	cout << teachers_map_.size() << "  " << courses_map_.size() <<
 		"  " << teachers_.size() << "  " << class_units_.size() <<
@@ -55,13 +46,10 @@ void GA::Init() {
 	fits = vector<double>(population_, 0);
 	for (int i = 0; i < population_; i++) {
 		generation[0][i].Init(teachers_, class_units_, courses_, time_tables_);
-		//cout << "ga.init\n";
-		/*for (int j = 0; j < generation[0][i].time_tables_.size(); j++) {
-			cout << generation[0][i].time_tables_[j].table_.size() << endl;
-			cout << "ga.init.getsize\n";
-		}*/
-		//system("PAUSE");
-		//cout << i << endl;
+	}
+	for (int i = 0; i < population_; i++) {
+		generation[0][i].CalRes();
+		Transform(generation[0][i]);
 	}
 	//cout << "GA.init\n";
 	//test(generation[0]);
@@ -69,12 +57,11 @@ void GA::Init() {
 }
 
 void GA::Generate() {
-	Init();
-	//test(generation[0]);
-	//system("PAUSE");
 	res = Schedule();
+	//crash和reward都是要最小最好，crash代表冲突个数，reward代表占用的半天的个数
 	res.crash_ = mxcrash;
-	res.reward_ = 0;
+	res.reward_ = mxcrash;
+	Init();
 	int t1 = clock(), t2 = t1, t3 = t1;
 	int mxoff = timeout;
 	int prvcrash = mxcrash;

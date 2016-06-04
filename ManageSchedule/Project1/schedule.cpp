@@ -13,7 +13,7 @@ void Schedule::Init(vector<Teacher *> &teachers, vector<ClassUnit *> &class_unit
 	courses_ = courses;
 	//time_tables_ = time_tables;
 	for (int i = 0; i < teachers.size(); i++) {
-		teachers[i]->InitAvailable(TimeTable::days_per_week_, TimeTable::period_per_day_);
+		teachers_[i]->InitAvailable(TimeTable::days_per_week_, TimeTable::period_per_day_);
 	}
 	//cout << "schedule.init\n";
 	//system("PAUSE");
