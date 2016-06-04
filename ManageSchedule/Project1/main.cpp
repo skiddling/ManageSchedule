@@ -2,9 +2,14 @@
 
 map<string, int> teachersmap;//record the id of the teacher 
 map<string, int> coursesmap;//record the id of the course
-vector<Teacher *> teachers;//the queue of all the teachers
+//teachers不再用指针形式，因为我们需要在每个学校都各自拥有一个教师的情况
+//而指针会造成公用一个地址，也就是导致了所有的generation公用一个teachers
+//所以我们需要改变teachers为实体化
+//总结就是指针可以这种效果可以static相类似的功能
+//vector<Teacher *> teachers;//the queue of all the teachers
+vector<Teacher> teachers;
 vector<ClassUnit *> classunits;//all the class units
-vector<Course *> courses;//the queue of all the courses
+vector<Course> courses;//the queue of all the courses
 vector<TimeTable> timetables;
 //所有的行政班的所有的课排成一个队列，并没有安排具体课的时间
 //每个班所有的课，只用了一个class_que
@@ -22,13 +27,13 @@ void Init() {
 	int coursenum, classnum;
 	fin >> coursenum >> classnum;
 	string coursename;
-	courses = vector<Course *>(coursenum);
+	courses = vector<Course>(coursenum);
 	for (int i = 0; i < coursenum; i++) {
 		fin >> coursename;
 		coursesmap[coursename] = i;
 		Course *cou = new Course(i, coursename);
 		//courses.push_back(cou);
-		courses[i] = cou;
+		courses[i] = *cou;
 	}
 	int courselenth;
 	string teachername, classname;
@@ -43,14 +48,14 @@ void Init() {
 				if (it == teachersmap.end()) {
 					teachersmap[teachername] = teachersmap.size();
 					Teacher *tea = new Teacher(teachersmap[teachername], teachername);
-					teachers.push_back(tea);
-					courses[j]->teacher_queue_.push_back(tea);
+					teachers.push_back(*tea);
+					courses[j].teacher_queue_.push_back(*tea);
 				}
 				//i is the classid, class_que is map
-				teachers[teachersmap[teachername]]->class_que_[i] = vector<int>(courselenth);
+				teachers[teachersmap[teachername]].class_que_[i] = vector<int>(courselenth);
 				for (int k = 0; k < courselenth; k++) {
-					ClassUnit *clsu = new ClassUnit(*teachers[teachersmap[teachername]], i, classname, courses[j]->course_name_, courses[j]->course_id_);
-					teachers[teachersmap[teachername]]->class_que_[i][k] = classunits.size();
+					ClassUnit *clsu = new ClassUnit(teachers[teachersmap[teachername]], i, classname, courses[j].course_name_, courses[j].course_id_);
+					teachers[teachersmap[teachername]].class_que_[i][k] = classunits.size();
 					clsu->unit_id_ = classunits.size();
 					classunits.push_back(clsu);
 				}
@@ -73,18 +78,18 @@ void Init() {
 void Out() {
 	ofstream fout("out.txt");
 	fout << "输出老师的个数和老师各自的序号" << endl;
-	vector<Teacher *> :: iterator itt = teachers.begin();
+	vector<Teacher> :: iterator itt = teachers.begin();
 	for (; itt != teachers.end(); itt++) {
-		fout << (*itt)->id_ << ' ' << (*itt)->teacher_name_ << "\n";
+		fout << itt->id_ << ' ' << itt->teacher_name_ << "\n";
 	}
 	fout << endl << endl;
 	fout << "输出每个科目的下有哪些老师" << endl;
-	vector<Course *> :: iterator itc = courses.begin();
+	vector<Course> :: iterator itc = courses.begin();
 	for (; itc != courses.end(); itc++) {
-		fout << (*itc)->course_id_ << ' ' << (*itc)->course_name_ << "\n";
-		itt = (*itc)->teacher_queue_.begin();
-		for (; itt != (*itc)->teacher_queue_.end(); itt++) {
-			fout << (*itt)->id_ << ' ' << (*itt)->teacher_name_ << "\n";
+		fout << itc->course_id_ << ' ' << itc->course_name_ << "\n";
+		itt = itc->teacher_queue_.begin();
+		for (; itt != itc->teacher_queue_.end(); itt++) {
+			fout << itt->id_ << ' ' << itt->teacher_name_ << "\n";
 		}
 		fout << endl;
 	}
@@ -192,7 +197,8 @@ int main() {
 	cout << "end of init\n";
 	//system("PAUSE");
 	//return 0;
-	GA ga(teachersmap, coursesmap, teachers, classunits, courses, timetables);
+	//GA ga(teachersmap, coursesmap, teachers, classunits, courses, timetables);
+	GA ga(teachersmap, coursesmap, teachers, courses, timetables);
 	ga.Generate();
 	Output(ga.res);
 	return 0;

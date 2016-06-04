@@ -19,14 +19,13 @@ public:
 	Schedule res;
 	map<string, int> teachers_map_;
 	map<string, int> courses_map_;
-	vector<Teacher *> teachers_;
-	vector<ClassUnit *> class_units_;
-	vector<Course *> courses_;
+	vector<Teacher> teachers_;
+	vector<Course> courses_;
 	vector<TimeTable> time_tables_;
 	
 	GA(map<string, int> teachers_map, map<string, int> courses_map,
-		vector<Teacher *> teachers, vector<ClassUnit *> class_nuits,
-		vector<Course *> courses, vector<TimeTable> time_table);
+		vector<Teacher> teachers, vector<Course> courses, 
+		vector<TimeTable> time_table);
 	~GA();
 	//void Out();
 	void Init();

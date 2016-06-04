@@ -38,7 +38,7 @@ public:
 	ClassUnit(Teacher teacher, int class_id, string class_name, string course_name, int course_id);
 	void AddCant(vector<pair<int, int> > &cant_time);
 	inline pair<int, int> get_time();
-	void AddUnit(int x, int y, vector<Teacher *> &teachers);
-	void DelUnit(vector<Teacher *> &teachers);
-	bool IsConflict(vector<Teacher *> &teachers);
+	void AddUnit(int x, int y, vector<Teacher> &teachers);
+	void DelUnit(vector<Teacher> &teachers);
+	bool IsConflict(vector<Teacher> &teachers);
 };

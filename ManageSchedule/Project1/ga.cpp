@@ -10,33 +10,16 @@ const double mxcp = 0.35;
 const double step = 1.3;
 
 GA::GA(map<string, int> teachers_map, map<string, int> courses_map,
-	vector<Teacher *> teachers, vector<ClassUnit *> class_units,
-	vector<Course *> courses, vector<TimeTable> time_tables):
+	vector<Teacher> teachers, vector<Course> courses,
+	vector<TimeTable> time_tables):
 	teachers_map_(teachers_map), courses_map_(courses_map),
-	teachers_(teachers), class_units_(class_units),
-	courses_(courses), time_tables_(time_tables)
+	teachers_(teachers), courses_(courses), 
+	time_tables_(time_tables)
 {}
-GA::~GA() {
-	vector<Teacher *> ::iterator itt = teachers_.begin();
-	for (; itt != teachers_.end(); itt++) {
-		delete (*itt);
-	}
-
-	vector<ClassUnit *> ::iterator itu = class_units_.begin();
-	for (; itu != class_units_.end(); itu++) {
-		delete (*itu);
-	}
-	
-	vector<Course *> ::iterator itc = courses_.begin();
-	for (; itc != courses_.end(); itc++) {
-		delete (*itc);
-	}
-}
 
 void GA::Init() {
 	cout << teachers_map_.size() << "  " << courses_map_.size() <<
-		"  " << teachers_.size() << "  " << class_units_.size() <<
-		"  " << time_tables_.size() << endl;
+		"  " << teachers_.size() << "  " << time_tables_.size() << endl;
 	//system("PAUSE");
 	population_ = 300;
 	for (int i = 0; i < 2; i++) {
@@ -45,7 +28,7 @@ void GA::Init() {
 	//system("PAUSE");
 	fits = vector<double>(population_, 0);
 	for (int i = 0; i < population_; i++) {
-		generation[0][i].Init(teachers_, class_units_, courses_, time_tables_);
+		generation[0][i].Init(teachers_, courses_, time_tables_);
 	}
 	for (int i = 0; i < population_; i++) {
 		generation[0][i].CalRes();

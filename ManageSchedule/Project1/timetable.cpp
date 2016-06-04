@@ -21,7 +21,7 @@ void TimeTable::GetRandTable(vector<vector<int> > &randtable) {
 }
 
 //让每一节课都按照科目放到班级课表当中的科目系统当中，方便添加限制条件
-void TimeTable::Init(TimeTable &time_table, vector<Teacher *> &teachers) {
+void TimeTable::Init(TimeTable &time_table, vector<Teacher> &teachers) {
 	//courses_map_ = courses_map;
 	class_que_ = vector<ClassUnit>(time_table.class_que_.size());
 	class_que_ = time_table.class_que_;
@@ -130,20 +130,20 @@ void TimeTable::AddItime(int course_id, vector<pair<int, int> > &itime) {
 	}
 }
 
-void TimeTable::Update(int x, int y, int nx, int ny, vector<Teacher *> teachers) {
+void TimeTable::Update(int x, int y, int nx, int ny, vector<Teacher> teachers) {
 	if (table_[x][y] != NULL) {
 		table_[x][y]->DelUnit(teachers);
 		table_[x][y]->AddUnit(nx, ny, teachers);
 	}
 }
 
-void TimeTable::UnitSwap(int x, int y, int nx, int ny, vector<Teacher *> &teachers) {
+void TimeTable::UnitSwap(int x, int y, int nx, int ny, vector<Teacher> &teachers) {
 	Update(x, y, nx, ny, teachers);
 	Update(nx, ny, x, y, teachers);
 	swap(table_[x][y], table_[nx][ny]);
 }
 
-bool TimeTable::CanMutate(int x, int y, int nx, int ny, vector<Teacher *> &teachers) {
+bool TimeTable::CanMutate(int x, int y, int nx, int ny, vector<Teacher> &teachers) {
 	if (x == nx && y == ny)return 0;
 	if (table_[x][y]->continue_tag_ == 0) {
 		//1换1
@@ -168,7 +168,7 @@ bool TimeTable::CanMutate(int x, int y, int nx, int ny, vector<Teacher *> &teach
 
 }
 
-void TimeTable::Mutate(double mp, vector<Teacher *> teachers) {
+void TimeTable::Mutate(double mp, vector<Teacher> teachers) {
 	for (int x = 0; x < days_per_week_; x++) {
 		for (int y = 0; y < period_per_day_; y++) {
 			//保证x,y不为空,但是nx,ny不保证
@@ -193,7 +193,7 @@ void TimeTable::Mutate(double mp, vector<Teacher *> teachers) {
 //因为两张timetable当中的classunit是各自分别占了不同两块内存的各自独立的对象，所以不能再用指针来分别两个节次单元
 //需要直接用各自节次的id来搞
 //连堂课不进行cross操作
-void TimeTable::Cross(TimeTable &timetable, double cp, vector<Teacher *> &teachers) {
+void TimeTable::Cross(TimeTable &timetable, double cp, vector<Teacher> &teachers) {
 	vector<vector<ClassUnit *> > newtable = vector<vector<ClassUnit *> >(days_per_week_, vector<ClassUnit *>(period_per_day_, NULL));
 	map<int, bool> needcross;
 	map<int, bool> :: iterator it;
@@ -247,7 +247,7 @@ void TimeTable::Cross(TimeTable &timetable, double cp, vector<Teacher *> &teache
 }
 
 //主要用到老师的availabletime和roomtime两个map
-void TimeTable::Modify(vector<Teacher *> teachers) {
+void TimeTable::Modify(vector<Teacher> teachers) {
 	map<pair<int, int>, bool>::iterator it;
 	for (int x = 0; x < days_per_week_; x++) {
 		for (int y = 0; y < period_per_day_; y++) {
@@ -262,18 +262,18 @@ void TimeTable::Modify(vector<Teacher *> teachers) {
 	}
 }
 
-void TimeTable::SolveConflict(ClassUnit *cu, vector<Teacher *> teachers) {
+void TimeTable::SolveConflict(ClassUnit *cu, vector<Teacher> teachers) {
 	vector<pair<int, int> > availtime = vector<pair<int, int> >(0);
 	int tid = cu->teacher_.id_;
 	//这个有空时间只是说这些时间这个老师是不上课的，但是在具体修正的时候我们要考虑一个班一个老师在一天内只能去一次
 	//所以我们在添加这个空余时间的时候我们需要对这些时间进行判断
-	map<pair<int, int>, bool>::iterator  it = teachers[tid]->available_time.begin();
+	map<pair<int, int>, bool>::iterator  it = teachers[tid].available_time.begin();
 	int cid = cu->class_id_;
 	pair<int, int> tu, tn = make_pair(cu->class_time_.first, cu->class_id_);
-	for (; it != teachers[tid]->available_time.end(); it++) {
+	for (; it != teachers[tid].available_time.end(); it++) {
 		tu = make_pair(it->first.first, cid);
-		if ((it->first.first == cu->class_time_.first && teachers[tid]->room_time_[tn] == 1)
-			|| teachers[tid]->room_time_.find(tu) == teachers[tid]->room_time_.end()) {
+		if ((it->first.first == cu->class_time_.first && teachers[tid].room_time_[tn] == 1)
+			|| teachers[tid].room_time_.find(tu) == teachers[tid].room_time_.end()) {
 			//情况1：该班级该天该老师只是在这个班上了一次课，那么这个空余时间可以是该天的其他空余的时间段
 			//情况2：其他老师没有在该班级上过课的那几天当中的空余的时间段
 			availtime.push_back(it->first);
@@ -303,33 +303,33 @@ void TimeTable::SolveConflict(ClassUnit *cu, vector<Teacher *> teachers) {
 	}
 }
 
-bool TimeTable::CheckUnit(int x, int y, int nx, int ny, vector<Teacher *> &teachers) {
+bool TimeTable::CheckUnit(int x, int y, int nx, int ny, vector<Teacher> &teachers) {
 	int cid = table_[x][y]->class_id_, tid = table_[x][y]->teacher_.id_, tnid = table_[nx][ny]->teacher_.id_;
 	pair<int, int> pt = make_pair(x, y), pnt, rt = make_pair(x, cid), rnt = make_pair(nx, cid);
-	if (teachers[tid]->room_time_.find(rnt) != teachers[tid]->room_time_.end())return 0;
+	if (teachers[tid].room_time_.find(rnt) != teachers[tid].room_time_.end())return 0;
 	//对方老师没空,tid为对方老师的id
 	if (table_[nx][ny] != NULL) {
 		//int tid = table_[nx][ny]->teacher_.id_;
 		if(tid != tnid){
 		//if (tid != table_[x][y]->teacher_.id_) {
 			//对方老师不存在该时间段有空,以及该老师已经在该天上过这个班的课了，不能再上了
-			if (teachers[tnid]->available_time.find(pt) == teachers[tnid]->available_time.end()) return 0;
-			if (teachers[tnid]->room_time_.find(rt) != teachers[tnid]->room_time_.end())return 0;
+			if (teachers[tnid].available_time.find(pt) == teachers[tnid].available_time.end()) return 0;
+			if (teachers[tnid].room_time_.find(rt) != teachers[tnid].room_time_.end())return 0;
 		}
 		else {
 			//两个老师相同
 			pnt = make_pair(nx, ny);
-			if (teachers[tid]->class_table_[pt] == 1 && teachers[tid]->class_table_[pnt] == 1) {
+			if (teachers[tid].class_table_[pt] == 1 && teachers[tid].class_table_[pnt] == 1) {
 				int tg = table_[x][y]->continue_tag_ > 0 ? 2 : 1;
 				int tng = table_[nx][ny]->continue_tag_ > 0 ? 2 : 1;
-				if (teachers[tid]->room_time_[rt] == tg && teachers[tid]->room_time_[rnt] == tng)return 1;
+				if (teachers[tid].room_time_[rt] == tg && teachers[tid].room_time_[rnt] == tng)return 1;
 				return 0;
 			}
-			//if (teachers[tid]->class_table_[pt] >= 1 || teachers[tid]->class_table_[pnt] >= 1) return 0;
-			//if (table_[x][y]->continue_tag_ == 0 && teachers[tid]->room_time_[rt] > 1)return 0;
-			//if (table_[nx][ny]->continue_tag_ == 0 && teachers[tid]->room_time_[rnt] > 1)return 0;
-			//if (table_[x][y]->continue_tag_ && teachers[tid]->room_time_[rt] > 2)return 0;
-			//if (table_[nx][ny]->continue_tag_ && teachers[tid]->room_time_[rnt] > 2)return 0;
+			//if (teachers[tid].class_table_[pt] >= 1 || teachers[tid].class_table_[pnt] >= 1) return 0;
+			//if (table_[x][y]->continue_tag_ == 0 && teachers[tid].room_time_[rt] > 1)return 0;
+			//if (table_[nx][ny]->continue_tag_ == 0 && teachers[tid].room_time_[rnt] > 1)return 0;
+			//if (table_[x][y]->continue_tag_ && teachers[tid].room_time_[rt] > 2)return 0;
+			//if (table_[nx][ny]->continue_tag_ && teachers[tid].room_time_[rnt] > 2)return 0;
 
 		}
 	}
