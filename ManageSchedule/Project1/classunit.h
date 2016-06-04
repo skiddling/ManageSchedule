@@ -22,7 +22,7 @@ class ClassUnit
 {
 public:
 	static int pim;//shrot for period in moring
-	int unit_id_;//该节课的id，是在左右课当中的顺序,和teacher当中的class_que当中的值对应
+	int unit_id_;//该节课的id，是在所有课当中的顺序,和teacher当中的class_que当中的值对应
 	int class_id_;//班级号
 	string class_name_;//班级名
 	int course_id_;

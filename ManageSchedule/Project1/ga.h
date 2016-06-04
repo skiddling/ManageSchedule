@@ -23,11 +23,8 @@ public:
 	vector<Course> courses_;
 	vector<TimeTable> time_tables_;
 	
-	GA(map<string, int> teachers_map, map<string, int> courses_map,
-		vector<Teacher> teachers, vector<Course> courses, 
-		vector<TimeTable> time_table);
-	~GA();
-	//void Out();
+	GA(map<string, int> teachers_map, map<string, int> courses_map, vector<Teacher> teachers,
+		vector<Course> courses, vector<TimeTable> time_table);
 	void Init();
 	void Select();
 	void Mutate();

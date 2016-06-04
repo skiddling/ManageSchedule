@@ -30,6 +30,7 @@ void GA::Init() {
 	for (int i = 0; i < population_; i++) {
 		generation[0][i].Init(teachers_, courses_, time_tables_);
 	}
+	//cout << "ga.init\n";
 	for (int i = 0; i < population_; i++) {
 		generation[0][i].CalRes();
 		Transform(generation[0][i]);
@@ -50,13 +51,16 @@ void GA::Generate() {
 	int prvcrash = mxcrash;
 	cout << "start generate\n";
 	cout << t1 << endl;
-	system("PAUSE");
+	//system("PAUSE");
 	while (t2 - t1 < mxoff) {
 		//会把0组的选择结果送到1组当中
-		Select(), cout << "selected\n";
-		Mutate(), cout << "mutated\n";
+		Select(); 
+		cout << "selected\n";
+		Mutate(); 
+		cout << "mutated\n";
 		//cross之后会把1组的结果送到0组当中
-		Cross(), cout << "crossed\n";
+		Cross(); 
+		cout << "crossed\n";
 		//test(generation[1]);
 		generation[0] = generation[1];
 		//test(generation[0]);
@@ -107,17 +111,17 @@ void GA::Generate() {
 }
 
 void GA::Select() {
-	int mxreward = 1;
+	//int mxreward = 1;
 	max_fit_ = 0;
+	//for (int i = 0; i < population_; i++) {
+	//	if (generation[0][i].crash_ <= 0)
+	//		//mxreward = max(mxreward, generation[0][i].reward_);
+	//		mxreward = min(mxreward, generation[0][i].reward_);
+	//}
 	for (int i = 0; i < population_; i++) {
-		if (generation[0][i].crash_ <= 0)
-			//mxreward = max(mxreward, generation[0][i].reward_);
-			mxreward = min(mxreward, generation[0][i].reward_);
-	}
-	for (int i = 0; i < population_; i++) {
-		generation[0][i].CalFitness(mxreward);
+		generation[0][i].CalFitness();
 		fits[i] = generation[0][i].fitness_;
-		max_fit_ = max(max_fit_, generation[0][i].fitness_);
+		//max_fit_ = max(max_fit_, generation[0][i].fitness_);
 		//轮盘赌，形成总的适应度，然后让总的适应度成为轮盘赌的总值，然后计算每个适应度在当中所占的比例
 		if (i > 0)fits[i] += fits[i - 1];
 	}

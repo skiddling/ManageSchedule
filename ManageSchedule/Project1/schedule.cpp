@@ -17,7 +17,7 @@ void Schedule::Init(vector<Teacher> &teachers, vector<Course> &courses, vector<T
 		time_tables_[i].Init(time_tables[i], teachers_);
 		//cout << time_tables[i].table_.size();
 	}
-	cout << "schedule.init\n";
+	//cout << "schedule.init\n";
 	//system("PAUSE");
 }
 
@@ -32,7 +32,7 @@ void Schedule::CalRes() {
 			if (it->second > 1)crash += (it->second - 1);
 		}
 	}
-
+	//冲突种类2:在同一天的同一个班级当中一个老师去了两次
 	for (int i = 0; i < teachers_.size(); i++) {
 		for (it = teachers_[i].room_time_.begin(); it != teachers_[i].room_time_.end(); it++) {
 			if (it->second > 1)crash += (it->second - 1);
@@ -75,7 +75,8 @@ void Schedule::Cross(Schedule &another, double cp) {
 	}
 }
 
-void Schedule::CalFitness(int mxreward) {
+void Schedule::CalFitness() {
+	//fitness是crash的倒数
 	fitness_ = 1.0 / (double)(1 + crash_);
-	if (crash_ <= 0)fitness_ = (double)reward_ / mxreward;
+	//if (crash_ <= 0)fitness_ = (double)reward_ / mxreward;
 }
