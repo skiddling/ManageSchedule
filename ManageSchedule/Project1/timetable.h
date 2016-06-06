@@ -16,7 +16,8 @@ public:
 	static int period_per_day_;//ppd for short
 	static int period_in_moring_;//pim for short
 	static map<string, int> courses_map_;
-	vector<vector<ClassUnit *> > table_;//the real timetable of one class,指向class_que_当中的位置
+	//the real timetable of one class,指向class_que_当中的位置
+	vector<vector<ClassUnit *> > table_;
 	vector<ClassUnit> class_que_;//all the classes in this class, they have their own address in memory
 	//指向每个每科当中的科目
 	vector<vector<ClassUnit *> > course_classes_;
@@ -26,14 +27,14 @@ public:
 	void AddContinue(int course_id, int continue_num);
 	void AddCant(int course_id, vector<pair<int, int> > &cant_time);
 	void AddItime(int course_id, vector<pair<int, int> > &itime);
-	void Update(int x, int y, int nx, int ny, vector<Teacher> teachers);
+	void Update(int x, int y, int nx, int ny, vector<Teacher> &teachers);
 	//mutate和cross这两个操作都要考虑到连堂课的可能性
-	void Mutate(double mp, vector<Teacher> teachers);
+	void Mutate(double mp, vector<Teacher> &teachers);
 	void Cross(TimeTable &timetable, double cp, vector<Teacher> &teachers);
-	void Modify(vector<Teacher> teachers);
+	void Modify(vector<Teacher> &teachers);
 	void GetRandTable(vector<vector<int> > &randtable);
 	bool CanMutate(int x, int y, int nx, int ny, vector<Teacher> &teachers);
-	void SolveConflict(ClassUnit *cu, vector<Teacher> teachers);
+	void SolveConflict(ClassUnit *cu, vector<Teacher> &teachers);
 	void UnitSwap(int x, int y, int nx, int ny, vector<Teacher> &teachers);
 	bool CheckUnit(int x, int y, int nx, int ny, vector<Teacher> &teachers);
 };

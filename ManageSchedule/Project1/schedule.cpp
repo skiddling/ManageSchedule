@@ -2,11 +2,21 @@
 
 map<string, int> Schedule::courses_map_;
 map<string, int> Schedule::teachers_map_;
+int Schedule::peri_upper_bound_ = 0;
+
+void Schedule::GetPeirUpperBound() {
+	int mod = 10, teasize = teachers_map_.size();
+	while (teasize * 10 / mod) {
+		mod *= 10;
+	}
+	peri_upper_bound_ = mod;
+}
 
 void Schedule::Init(vector<Teacher> &teachers, vector<Course> &courses, vector<TimeTable> &time_tables){
 	teachers_ = teachers;
 	courses_ = courses;
 	//time_tables_ = time_tables;
+	GetPeirUpperBound();
 	for (int i = 0; i < teachers.size(); i++) {
 		teachers_[i].InitAvailable(TimeTable::days_per_week_, TimeTable::period_per_day_);
 	}
@@ -77,6 +87,5 @@ void Schedule::Cross(Schedule &another, double cp) {
 
 void Schedule::CalFitness() {
 	//fitnessÊÇcrashµÄµ¹Êý
-	fitness_ = 1.0 / (double)(1 + crash_);
-	//if (crash_ <= 0)fitness_ = (double)reward_ / mxreward;
+	fitness_ = 1.0 / (double)(1 + crash_ + reward_  * 1.0 / peri_upper_bound_);
 }

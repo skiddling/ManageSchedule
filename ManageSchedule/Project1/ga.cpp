@@ -4,8 +4,8 @@ const int mxcrash = 100000000;
 const int timeout = 7200000;
 const int loctimeout = 600000;
 const int crashout = 20;
-const double mxmp = 0.03;
-const double mxmpg = 0.25;
+const double mxmp = 0.03;//用于变异选择的概率
+const double mxmpg = 0.25;//用于个体当中某一些部分的基因进行变异的概率
 const double mxcp = 0.35;
 const double step = 1.3;
 
@@ -22,6 +22,12 @@ void GA::Init() {
 		"  " << teachers_.size() << "  " << time_tables_.size() << endl;
 	//system("PAUSE");
 	population_ = 300;
+	//c代表的是设定的概率值，不带c的表明的是代码运行当中用到的值
+	pof_mutate_ = c_pof_mutate_;
+	pof_mutate_gene_ = c_pof_mutate_gene_;
+	pof_cross_ = c_pof_cross_;
+	//滚动数组，generation[1]始终用作generation[1]的暂存变量
+	//在所有的操作都始终对generation[0]进行操作
 	for (int i = 0; i < 2; i++) {
 		generation[i] = vector<Schedule>(population_);
 	}
@@ -53,7 +59,7 @@ void GA::Generate() {
 	cout << t1 << endl;
 	//system("PAUSE");
 	while (t2 - t1 < mxoff) {
-		//会把0组的选择结果送到1组当中
+		//会把0组的选择结果送到1组当中,再传回来
 		Select(); 
 		cout << "selected\n";
 		Mutate(); 
@@ -62,7 +68,7 @@ void GA::Generate() {
 		Cross(); 
 		cout << "crossed\n";
 		//test(generation[1]);
-		generation[0] = generation[1];
+		//generation[0] = generation[1];
 		//test(generation[0]);
 		Modify();
 		//break;
@@ -87,6 +93,7 @@ void GA::Generate() {
 		cout << res.crash_ << ' ' << micrash << ' ' << res.reward_ << ' ' << t1 << ' ' << t2 << ' ' << t3 << "\n";
 		//遇上局部最优解无法逃出		
 		if (t2 - t3 > loctimeout) {
+			//重新设定起点，但是不必要重新回到起点
 			pof_mutate_ *= step;
 			pof_mutate_gene_ *= step;
 			pof_mutate_ = min(mx_pof_mutate_, pof_mutate_);
@@ -121,7 +128,7 @@ void GA::Select() {
 	for (int i = 0; i < population_; i++) {
 		generation[0][i].CalFitness();
 		fits[i] = generation[0][i].fitness_;
-		//max_fit_ = max(max_fit_, generation[0][i].fitness_);
+		max_fit_ = max(max_fit_, generation[0][i].fitness_);
 		//轮盘赌，形成总的适应度，然后让总的适应度成为轮盘赌的总值，然后计算每个适应度在当中所占的比例
 		if (i > 0)fits[i] += fits[i - 1];
 	}
@@ -134,13 +141,16 @@ void GA::Select() {
 		int id = lower_bound(fits.begin(), fits.end(), r) - fits.begin();
 		//根据轮盘赌的结果来进行排序选择,选出来的可以是有重复的，但是就是要选出相同数量
 		generation[1][i] = generation[0][id];
+		//cout << i << ' ' << id << endl;
 	}
+	//将信息又重新传回给generation[0]当中
+	generation[0] = generation[1];
 }
 
 void GA::Cross() {
 	for (int i = 0; i < population_; i++) {
 		double rd = (double)rand() * rand() / kRandPlusRand;
-		double mp = pof_cross_ * max_fit_ / generation[1][i].fitness_;
+		double mp = pof_cross_ * max_fit_ / generation[0][i].fitness_;
 		mp = min(mp, mxcp);
 		if (rd < mp) {
 			double r = (double)rand() * rand() / kRandPlusRand;
@@ -148,7 +158,7 @@ void GA::Cross() {
 			if (i == j) {
 				j = (j + 1) % population_;
 			}
-			generation[1][i].Cross(generation[1][j], mp);
+			generation[0][i].Cross(generation[0][j], mp);
 		}
 	}
 
@@ -157,12 +167,18 @@ void GA::Cross() {
 void GA::Mutate() {
 	for (int i = 0; i < population_; i++) {
 		double r = (double)rand() *rand() / kRandPlusRand;
-		double mp = pof_mutate_ * max_fit_ / generation[1][0].fitness_;
+		//暂时将变异概率放大一定倍数 max_fit_ / generation[1][i].fitness_
+		//适应度低的个体更需要进行变异,但是最大的变异概率不能超过mxmp
+		double mp = pof_mutate_ * max_fit_ / generation[0][i].fitness_;
 		mp = min(mp, mxmp);
+		//变异是在所有个体当中随机选择一个个体进行变异
+		//转到实现当中就是以一定的概率进行选择某一些个体
+		//然后对于选中的个体当中以一定的概率随进对某些位置进行变异
 		if (r < mp) {
-			mp = pof_mutate_gene_ * max_fit_ / generation[1][i].fitness_;
+			//类似于上面的变异的概率
+			mp = pof_mutate_gene_ * max_fit_ / generation[0][i].fitness_;
 			mp = min(mp, mxmpg);
-			generation[1][i].Mutate(mp);
+			generation[0][i].Mutate(mp);
 		}
 	}
 }

@@ -130,14 +130,18 @@ void TimeTable::AddItime(int course_id, vector<pair<int, int> > &itime) {
 	}
 }
 
-void TimeTable::Update(int x, int y, int nx, int ny, vector<Teacher> teachers) {
+void TimeTable::Update(int x, int y, int nx, int ny, vector<Teacher> &teachers) {
+	//只有实体课程单元才需要进行对应任课老师的修改,修改老师上课时间的信息
 	if (table_[x][y] != NULL) {
+		//将原有教师信息删除
 		table_[x][y]->DelUnit(teachers);
+		//将老师信息更新
 		table_[x][y]->AddUnit(nx, ny, teachers);
 	}
 }
 
 void TimeTable::UnitSwap(int x, int y, int nx, int ny, vector<Teacher> &teachers) {
+	//先修改实体的课程单元当中的教师信息，再将两个指针进行交换
 	Update(x, y, nx, ny, teachers);
 	Update(nx, ny, x, y, teachers);
 	swap(table_[x][y], table_[nx][ny]);
@@ -147,6 +151,7 @@ bool TimeTable::CanMutate(int x, int y, int nx, int ny, vector<Teacher> &teacher
 	if (x == nx && y == ny)return 0;
 	if (table_[x][y]->continue_tag_ == 0) {
 		//1换1
+		//判是否是空
 		if (table_[nx][ny] == NULL)return 1;
 		else {
 			if (table_[nx][ny]->alterable_ == 0)return 0;
@@ -168,7 +173,7 @@ bool TimeTable::CanMutate(int x, int y, int nx, int ny, vector<Teacher> &teacher
 
 }
 
-void TimeTable::Mutate(double mp, vector<Teacher> teachers) {
+void TimeTable::Mutate(double mp, vector<Teacher> &teachers) {
 	for (int x = 0; x < days_per_week_; x++) {
 		for (int y = 0; y < period_per_day_; y++) {
 			//保证x,y不为空,但是nx,ny不保证
@@ -182,9 +187,18 @@ void TimeTable::Mutate(double mp, vector<Teacher> teachers) {
 				t++;
 			}
 			if (t == 15)continue;
-			UnitSwap(x, y, nx, ny, teachers);
-			if (table_[nx][ny]->continue_tag_) {
-				UnitSwap(x, y + 1, nx, ny + 1, teachers);
+			cout << "timetable.mutate\n";
+			if(table_[x][y]->continue_tag_ == 0) UnitSwap(x, y, nx, ny, teachers);
+			else {
+				//连堂课进行判断
+				int k[3];
+				k[0] = (table_[x][y]->continue_tag_ == 1 ? 0 : -1);
+				k[1] = (table_[x][y]->continue_tag_ == 1 ? 1 : 0);
+				k[2] = (table_[x][y]->continue_tag_ == 1 ? 1 : -1);
+				if (ny + k[1] == period_in_moring_ || 
+					ny + k[1] == period_per_day_ || ny + k[0] == -1)continue;
+				UnitSwap(x, y, nx, ny, teachers);
+				UnitSwap(x, y + k[3], nx, ny + k[3], teachers);
 			}
 		}
 	}
@@ -247,7 +261,7 @@ void TimeTable::Cross(TimeTable &timetable, double cp, vector<Teacher> &teachers
 }
 
 //主要用到老师的availabletime和roomtime两个map
-void TimeTable::Modify(vector<Teacher> teachers) {
+void TimeTable::Modify(vector<Teacher> &teachers) {
 	map<pair<int, int>, bool>::iterator it;
 	for (int x = 0; x < days_per_week_; x++) {
 		for (int y = 0; y < period_per_day_; y++) {
@@ -262,7 +276,7 @@ void TimeTable::Modify(vector<Teacher> teachers) {
 	}
 }
 
-void TimeTable::SolveConflict(ClassUnit *cu, vector<Teacher> teachers) {
+void TimeTable::SolveConflict(ClassUnit *cu, vector<Teacher> &teachers) {
 	vector<pair<int, int> > availtime = vector<pair<int, int> >(0);
 	int tid = cu->teacher_.id_;
 	//这个有空时间只是说这些时间这个老师是不上课的，但是在具体修正的时候我们要考虑一个班一个老师在一天内只能去一次

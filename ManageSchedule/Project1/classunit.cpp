@@ -62,12 +62,14 @@ void ClassUnit::AddUnit(int x, int y, vector<Teacher> &teachers) {
 	}
 }
 
-//让该节课的时间删除，变回没有具体的时间，同时更新老师的信息
+//让删除该节课，其实只更新老师的信息
 void ClassUnit::DelUnit(vector<Teacher> &teachers) {
 	int x = class_time_.first, y = class_time_.second;
 	int tid = teacher_.id_, period = (y < pim ? 0 : 1);
-	pair<int, int> pt = make_pair(x, y);
+	//pair<int, int> pt = make_pair(x, y);
+	pair<int, int> pt = class_time_;
 	pair<int, int> rt = make_pair(x, class_id_);
+	cout << rt.first << ' ' << rt.second << endl;
 	//pair<int, int> nt = make_pair(x, y < pim ? 0 : 1);
 	if (teachers[tid].class_table_[pt] > 1) {
 		teachers[tid].class_table_[pt]--;
