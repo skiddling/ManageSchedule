@@ -69,7 +69,7 @@ void ClassUnit::DelUnit(vector<Teacher> &teachers) {
 	//pair<int, int> pt = make_pair(x, y);
 	pair<int, int> pt = class_time_;
 	pair<int, int> rt = make_pair(x, class_id_);
-	cout << rt.first << ' ' << rt.second << endl;
+	//cout << rt.first << ' ' << rt.second << endl;
 	//pair<int, int> nt = make_pair(x, y < pim ? 0 : 1);
 	if (teachers[tid].class_table_[pt] > 1) {
 		teachers[tid].class_table_[pt]--;

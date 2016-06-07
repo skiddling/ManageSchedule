@@ -98,9 +98,15 @@ void Out() {
 	}
 	fout << endl << endl;
 	fout << "输出所有的班级当中所有的课程数量" << endl;
-	vector<ClassUnit *> :: iterator itu = classunits.begin();
+	/*vector<ClassUnit *> :: iterator itu = classunits.begin();
 	for (; itu != classunits.end(); itu++) {
 		fout << (*itu)->class_id_ << ' ' << (*itu)->class_name_ << ' ' << (*itu)->teacher_.id_ << ' ' << (*itu)->teacher_.teacher_name_ << "\n";
+	}*/
+	for (int i = 0; i < classunits.size(); i++) {
+		vector<ClassUnit *>::iterator itu = classunits[i].begin();
+		for (; itu != classunits[i].end(); itu++) {
+			fout << (*itu)->class_id_ << ' ' << (*itu)->class_name_ << ' ' << (*itu)->teacher_.id_ << ' ' << (*itu)->teacher_.teacher_name_ << "\n";
+		}
 	}
 	fout << endl << endl;
 	fout << "输出每个班级当中有哪些老师上课，上多少次课" << endl;

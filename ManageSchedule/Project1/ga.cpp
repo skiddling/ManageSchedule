@@ -145,23 +145,25 @@ void GA::Select() {
 		//cout << i << ' ' << id << endl;
 	}
 	//将信息又重新传回给generation[0]当中
-	cout << "ga.select.s\n";
+	//cout << "ga.select.s\n";
 	generation[0] = generation[1];
-	cout << "ga.selece\n";
+	//cout << "ga.selece\n";
 }
 
 void GA::Cross() {
 	for (int i = 0; i < population_; i++) {
 		double rd = (double)rand() * rand() / kRandPlusRand;
-		double mp = pof_cross_ * max_fit_ / generation[0][i].fitness_;
-		mp = min(mp, mxcp);
-		if (rd < mp) {
+		double cp = pof_cross_ * max_fit_ / generation[0][i].fitness_;
+		cp = min(cp, mxcp);
+		//cp = 1;
+		if (rd < cp) {
+			//按概率选择一个个体和自己进行交换操作
 			double r = (double)rand() * rand() / kRandPlusRand;
 			int j = lower_bound(fits.begin(), fits.end(), r) - fits.begin();
 			if (i == j) {
 				j = (j + 1) % population_;
 			}
-			generation[0][i].Cross(generation[0][j], mp);
+			generation[0][i].Cross(generation[0][j], cp);
 		}
 	}
 

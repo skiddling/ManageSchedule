@@ -135,7 +135,7 @@ void TimeTable::Update(int x, int y, int nx, int ny, vector<Teacher> &teachers) 
 	if (table_[x][y] != NULL) {
 		//将原有教师信息删除
 		table_[x][y]->DelUnit(teachers);
-		//将老师信息更新
+		//将老师和单元课时间信息更新
 		table_[x][y]->AddUnit(nx, ny, teachers);
 	}
 }
@@ -207,11 +207,13 @@ void TimeTable::Mutate(double mp, vector<Teacher> &teachers) {
 //因为两张timetable当中的classunit是各自分别占了不同两块内存的各自独立的对象，所以不能再用指针来分别两个节次单元
 //需要直接用各自节次的id来搞
 //连堂课不进行cross操作
-void TimeTable::Cross(TimeTable &timetable, double cp, vector<Teacher> &teachers) {
+void TimeTable::Cross(TimeTable &another, double cp, vector<Teacher> &teachers) {
+	//newtable存的都是当前自己classque的地址
 	vector<vector<ClassUnit *> > newtable = vector<vector<ClassUnit *> >(days_per_week_, vector<ClassUnit *>(period_per_day_, NULL));
 	map<int, bool> needcross;
 	map<int, bool> :: iterator it;
 
+	//cp = 0.5;
 	//选出来要进行交换的节次
 	for (int x = 0; x < days_per_week_; x++) {
 		for (int y = 0; y < period_per_day_; y++) {
@@ -219,21 +221,23 @@ void TimeTable::Cross(TimeTable &timetable, double cp, vector<Teacher> &teachers
 			int uid = table_[x][y]->unit_id_;
 			double r = (double)rand() * rand() / kRandPlusRand;
 			//如果符合概率就要被cross，否则就是直接被保留下来
-			if (r < cp && table_[x][y]->alterable_ == 0) {
+			if (r < cp && table_[x][y]->alterable_ == 1) {
 				needcross[uid] = 1;
 			}
 			else newtable[x][y] = table_[x][y];
 		}
 	}
 
+	//cout << "timetable.cross\n";
 	//将能进行直接交换的节次就直接交换，并记录还没有利用起来的时间
+	//这步当中是不存在table_[x][y]为空的情况的
 	vector<pair<int, int> > periods;
 	for (int x = 0; x < days_per_week_; x++) {
 		for (int y = 0; y < period_per_day_; y++) {
-			ClassUnit *cu = timetable.table_[x][y];
-			if (cu->continue_tag_)continue;
-			int uid = timetable.table_[x][y]->unit_id_;
-			if (cu != NULL && needcross.find(uid) != needcross.end() && newtable[x][y] == NULL) {
+			ClassUnit *cu = another.table_[x][y];
+			if (cu == NULL || cu->continue_tag_)continue;
+			int uid = another.table_[x][y]->unit_id_;
+			if (needcross.find(uid) != needcross.end() && newtable[x][y] == NULL) {
 				newtable[x][y] = &class_que_[uid];
 				it = needcross.find(uid);
 				needcross.erase(it);
@@ -258,6 +262,7 @@ void TimeTable::Cross(TimeTable &timetable, double cp, vector<Teacher> &teachers
 		Update(cu.class_time_.first, cu.class_time_.second, periods[i].first, periods[i].second, teachers);
 	}
 	table_ = newtable;
+	//cout << "timetable.cross\n";
 }
 
 //主要用到老师的availabletime和roomtime两个map
