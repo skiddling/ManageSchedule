@@ -8,7 +8,7 @@ map<string, int> coursesmap;//record the id of the course
 //总结就是指针可以这种效果可以static相类似的功能
 //vector<Teacher *> teachers;//the queue of all the teachers
 vector<Teacher> teachers;
-vector<ClassUnit *> classunits;//all the class units
+vector<vector<ClassUnit *> > classunits;//all the class units
 vector<Course> courses;//the queue of all the courses
 vector<TimeTable> timetables;
 //所有的行政班的所有的课排成一个队列，并没有安排具体课的时间
@@ -37,6 +37,7 @@ void Init() {
 	}
 	int courselenth;
 	string teachername, classname;
+	classunits = vector<vector<ClassUnit *> >(classnum);
 	for (int i = 0; i < classnum; i++) {
 		fin >> classname;
 		for (int j = 0; j < coursenum; j++) {
@@ -55,9 +56,9 @@ void Init() {
 				teachers[teachersmap[teachername]].class_que_[i] = vector<int>(courselenth);
 				for (int k = 0; k < courselenth; k++) {
 					ClassUnit *clsu = new ClassUnit(teachers[teachersmap[teachername]], i, classname, courses[j].course_name_, courses[j].course_id_);
-					teachers[teachersmap[teachername]].class_que_[i][k] = classunits.size();
-					clsu->unit_id_ = classunits.size();
-					classunits.push_back(clsu);
+					teachers[teachersmap[teachername]].class_que_[i][k] = classunits[i].size();
+					clsu->unit_id_ = classunits[i].size();
+					classunits[i].push_back(clsu);
 				}
 			}
 		}
@@ -69,9 +70,11 @@ void Init() {
 	//put the class unit to their each class
 	//timetables = vector<TimeTable>(classnum, TimeTable(coursesmap));
 	timetables = vector<TimeTable>(classnum);
-	vector<ClassUnit *> ::iterator itc = classunits.begin();
-	for (; itc != classunits.end(); itc++) {
-		timetables[(*itc)->class_id_].class_que_.push_back(*(*itc));
+	for (int i = 0; i < classnum; i++) {
+		vector<ClassUnit *>::iterator itc = classunits[i].begin();
+		for (; itc != classunits[i].end(); itc++) {
+			timetables[(*itc)->class_id_].class_que_.push_back(*(*itc));
+		}
 	}
 }
 
