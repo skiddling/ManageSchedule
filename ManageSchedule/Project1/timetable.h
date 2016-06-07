@@ -40,6 +40,7 @@ public:
 
 	TimeTable& operator = (TimeTable &tb) {
 		class_que_ = tb.class_que_;
+		course_classes_ = tb.course_classes_;
 		for (int i = 0; i < days_per_week_; i++) {
 			for (int j = 0; j < period_per_day_; j++) {
 				table_[i][j] = NULL;
@@ -52,7 +53,7 @@ public:
 			f = ct.first;
 			s = ct.second;
 			p = tb.table_[f][s]->unit_id_;
-			table_[f][s] = &class_que_[p];
+			table_[f][s] = &(class_que_[p]);
 		}
 		return *this;
 	}

@@ -21,7 +21,8 @@ void GA::Init() {
 	cout << teachers_map_.size() << "  " << courses_map_.size() <<
 		"  " << teachers_.size() << "  " << time_tables_.size() << endl;
 	//system("PAUSE");
-	population_ = 300;
+	//population_ = 300;
+	population_ = 3;
 	//c代表的是设定的概率值，不带c的表明的是代码运行当中用到的值
 	pof_mutate_ = c_pof_mutate_;
 	pof_mutate_gene_ = c_pof_mutate_gene_;
@@ -36,7 +37,7 @@ void GA::Init() {
 	for (int i = 0; i < population_; i++) {
 		generation[0][i].Init(teachers_, courses_, time_tables_);
 	}
-	//cout << "ga.init\n";
+	cout << "ga.init\n";
 	for (int i = 0; i < population_; i++) {
 		generation[0][i].CalRes();
 		Transform(generation[0][i]);
@@ -144,7 +145,9 @@ void GA::Select() {
 		//cout << i << ' ' << id << endl;
 	}
 	//将信息又重新传回给generation[0]当中
+	cout << "ga.select.s\n";
 	generation[0] = generation[1];
+	cout << "ga.selece\n";
 }
 
 void GA::Cross() {
