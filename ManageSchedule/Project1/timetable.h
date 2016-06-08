@@ -38,6 +38,7 @@ public:
 	void UnitSwap(int x, int y, int nx, int ny, vector<Teacher> &teachers);
 	bool CheckUnit(int x, int y, int nx, int ny, vector<Teacher> &teachers);
 	bool CheckTeacherTime(int x, int y, int nx, int ny, vector<Teacher> &teachers);
+	int GetNumOfContinueClasses();
 
 	TimeTable& operator = (TimeTable &tb) {
 		class_que_ = tb.class_que_;

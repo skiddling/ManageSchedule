@@ -130,6 +130,15 @@ void TimeTable::AddItime(int course_id, vector<pair<int, int> > &itime) {
 	}
 }
 
+int TimeTable::GetNumOfContinueClasses() {
+	int num = 0;
+	for (int i = 0; i < class_que_.size(); i++) {
+		if (class_que_[i].continue_tag_ == 2)
+			num++;
+	}
+	return num;
+}
+
 void TimeTable::Update(int x, int y, int nx, int ny, vector<Teacher> &teachers) {
 	//只有实体课程单元才需要进行对应任课老师的修改,修改老师上课时间的信息
 	if (table_[x][y] != NULL) {
