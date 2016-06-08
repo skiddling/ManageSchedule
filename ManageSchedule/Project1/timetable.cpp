@@ -376,7 +376,7 @@ bool TimeTable::CheckTeacherTime(int x, int y, int nx, int ny, vector<Teacher> &
 	int tid = table_[x][y]->teacher_.id_;
 	pair<int, int> pt = make_pair(nx, ny);
 	pair<int, int> rt = make_pair(nx, cid);
-	if (teachers[tid].available_time.find(pt) != teachers[tid].available_time.end())return 0;
+	if (teachers[tid].available_time.find(pt) == teachers[tid].available_time.end())return 0;
 	else if (teachers[tid].room_time_.find(rt) != teachers[tid].room_time_.end())return 0;
 	else return 1;
 }
