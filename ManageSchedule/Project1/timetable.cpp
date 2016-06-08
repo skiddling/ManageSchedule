@@ -372,8 +372,11 @@ bool TimeTable::CheckUnit(int x, int y, int nx, int ny, vector<Teacher> &teacher
 
 //检查该老师能否换到nx和ny的时间空格当中
 bool TimeTable::CheckTeacherTime(int x, int y, int nx, int ny, vector<Teacher> &teachers) {
-	pair<int, int> pt = make_pair(nx, ny);
+	int cid = table_[x][y]->class_id_;
 	int tid = table_[x][y]->teacher_.id_;
+	pair<int, int> pt = make_pair(nx, ny);
+	pair<int, int> rt = make_pair(nx, cid);
 	if (teachers[tid].available_time.find(pt) != teachers[tid].available_time.end())return 0;
+	else if (teachers[tid].room_time_.find(rt) != teachers[tid].room_time_.end())return 0;
 	else return 1;
 }
