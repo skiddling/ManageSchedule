@@ -319,7 +319,7 @@ void TimeTable::SolveConflict(ClassUnit *cu, vector<Teacher> &teachers) {
 	}
 	//ClassUnit *ct;
 	int nx, ny;
-	cout << "timetable.modify\n";
+	//cout << "timetable.modify\n";
 	for (int i = 0; i < availtime.size(); i++) {
 		x = cu->class_time_.first, nx = availtime[i].first;
 		y = cu->class_time_.second, ny = availtime[i].second;
