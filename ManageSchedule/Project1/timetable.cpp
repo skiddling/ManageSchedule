@@ -283,19 +283,33 @@ void TimeTable::Modify(vector<Teacher> &teachers) {
 
 void TimeTable::SolveConflict(ClassUnit *cu, vector<Teacher> &teachers) {
 	vector<pair<int, int> > availtime = vector<pair<int, int> >(0);
-	int tid = cu->teacher_.id_;
-	//这个有空时间只是说这些时间这个老师是不上课的，但是在具体修正的时候我们要考虑一个班一个老师在一天内只能去一次
-	//所以我们在添加这个空余时间的时候我们需要对这些时间进行判断
-	map<pair<int, int>, bool>::iterator  it = teachers[tid].available_time.begin();
-	int cid = cu->class_id_;
-	pair<int, int> tu, tn = make_pair(cu->class_time_.first, cu->class_id_);
+	//判断是否是连堂课，如果是连堂课那么就要转移到连堂课的第一堂课，然后选出两个连续的空余时间进行交换
+	//如果不是连堂，那么就选出一节空余的时间进行交换即可
+	int tid = cu->teacher_.id_, cid = cu->class_id_;
+	//如果是连堂课那么都转移到连堂课的第一节当中
+	int x = cu->class_time_.first, y = (cu->continue_tag_ == 2) ? cu->class_time_.second - 1 : cu->class_time_.second;
+	//该次课上了多久
+	int ctime = (cu->continue_tag_ == 0 ? 1 : 2);
+	pair<int, int> rt = make_pair(x, cid), rnt, pnt;
+	map<pair<int, int>, bool>::iterator it = teachers[tid].available_time.begin();
 	for (; it != teachers[tid].available_time.end(); it++) {
-		tu = make_pair(it->first.first, cid);
-		if ((it->first.first == cu->class_time_.first && teachers[tid].room_time_[tn] == 1)
-			|| teachers[tid].room_time_.find(tu) == teachers[tid].room_time_.end()) {
-			//情况1：该班级该天该老师只是在这个班上了一次课，那么这个空余时间可以是该天的其他空余的时间段
-			//情况2：其他老师没有在该班级上过课的那几天当中的空余的时间段
-			availtime.push_back(it->first);
+		//如果是连堂，那么就找有连续两个空余时间的课的那种
+		if (cu->continue_tag_) {
+			pnt = make_pair(it->first.first, it->first.second + 1);
+			//判断这个课是存在两个连续的课的
+			if (teachers[tid].available_time.find(pnt) == teachers[tid].available_time.end())continue;
+		}
+		//1.该老师没有在那一天上过课，2.这个空余时间和当前这个课的上课日期一样，而且只上了这个课
+		rnt = make_pair(it->first.first, cid);
+		if (rnt == rt) {
+			if(ctime == teachers[tid].room_time_[rt])
+				availtime.push_back(it->first);
+			else continue;
+		}
+		else {
+			if (teachers[tid].room_time_.find(rnt) == teachers[tid].room_time_.end())
+				availtime.push_back(it->first);
+			else continue;
 		}
 	}
 	for (int i = 0; i < availtime.size(); i++) {
@@ -308,74 +322,57 @@ void TimeTable::SolveConflict(ClassUnit *cu, vector<Teacher> &teachers) {
 	for (int i = 0; i < availtime.size(); i++) {
 		x = cu->class_time_.first, nx = availtime[i].first;
 		y = cu->class_time_.second, ny = availtime[i].second;
-		if (cu->continue_tag_ == 2) {
-			y--, ny--;
-		}
+		//连堂课我们都是从连堂课的第一节开始进行判断,之前已经处理过了
 		if (CheckUnit(x, y, nx, ny, teachers)) {
 			UnitSwap(x, y, nx, ny, teachers);
 			if (table_[x][y]->continue_tag_) {				
-				tag = (table_[x][y]->continue_tag_ == 1 ? 1 : -1);
-				UnitSwap(x, y + tag, nx, ny + tag, teachers);
+				UnitSwap(x, y + 1, nx, ny + 1, teachers);
 			}
 			break;
 		}
 	}
 }
 
+//检查是否能够进行对换操作
 bool TimeTable::CheckUnit(int x, int y, int nx, int ny, vector<Teacher> &teachers) {
-	int cid = table_[x][y]->class_id_, tid = table_[x][y]->teacher_.id_, tnid = table_[nx][ny]->teacher_.id_;
-	pair<int, int> pt = make_pair(x, y), pnt, rt = make_pair(x, cid), rnt = make_pair(nx, cid);
-	if (teachers[tid].room_time_.find(rnt) != teachers[tid].room_time_.end())return 0;
-	//对方老师没空,tid为对方老师的id
-	if (table_[nx][ny] != NULL) {
-		//int tid = table_[nx][ny]->teacher_.id_;
-		if(tid != tnid){
-		//if (tid != table_[x][y]->teacher_.id_) {
-			//对方老师不存在该时间段有空,以及该老师已经在该天上过这个班的课了，不能再上了
-			if (teachers[tnid].available_time.find(pt) == teachers[tnid].available_time.end()) return 0;
-			if (teachers[tnid].room_time_.find(rt) != teachers[tnid].room_time_.end())return 0;
+	//1.先判断是否是连堂课	
+	//虽然在之前第一个调用处做了限制，但是这里仍然会涉及到自己调用自己的情况,所以continuetag仍然会是存在1和2
+	if (table_[x][y]->continue_tag_) {
+		if (table_[x][y]->continue_tag_ == 1) {
+			if (y == period_in_moring_ - 1 || y == period_per_day_ - 1)return 0;
+			if (table_[nx][ny] != NULL) {
+				if (table_[nx][ny]->continue_tag_ == 2)return 0;
+				if (table_[nx][ny]->alterable_ == 0)return 0;
+				return (CheckTeacherTime(nx, ny, x, y, teachers) && CheckUnit(x, y + 1, nx, ny + 1, teachers));
+			}
+			else return CheckUnit(nx, ny + 1, x, y + 1, teachers);
 		}
 		else {
-			//两个老师相同
-			pnt = make_pair(nx, ny);
-			if (teachers[tid].class_table_[pt] == 1 && teachers[tid].class_table_[pnt] == 1) {
-				int tg = table_[x][y]->continue_tag_ > 0 ? 2 : 1;
-				int tng = table_[nx][ny]->continue_tag_ > 0 ? 2 : 1;
-				if (teachers[tid].room_time_[rt] == tg && teachers[tid].room_time_[rnt] == tng)return 1;
-				return 0;
+			//continuetag是2的情况下	
+			if (table_[nx][ny] != NULL) {
+				if (table_[nx][ny]->continue_tag_ == 1)return 0;
+				if (table_[nx][ny]->alterable_ == 0)return 0;
+				return CheckTeacherTime(nx, ny, x, y, teachers);
 			}
-			//if (teachers[tid].class_table_[pt] >= 1 || teachers[tid].class_table_[pnt] >= 1) return 0;
-			//if (table_[x][y]->continue_tag_ == 0 && teachers[tid].room_time_[rt] > 1)return 0;
-			//if (table_[nx][ny]->continue_tag_ == 0 && teachers[tid].room_time_[rnt] > 1)return 0;
-			//if (table_[x][y]->continue_tag_ && teachers[tid].room_time_[rt] > 2)return 0;
-			//if (table_[nx][ny]->continue_tag_ && teachers[tid].room_time_[rnt] > 2)return 0;
-
+			else return 1;
 		}
-	}
-	//对方老师有空
-	if (table_[x][y]->continue_tag_ == 0) {
-		//1换1
-		if (table_[nx][ny] == NULL)return 1;
-		if (table_[nx][ny]->alterable_ == 0)return 0;
-		if (table_[nx][ny]->continue_tag_ == 0)return 1;
-		return 0;
 	}
 	else {
-		//2换2
-		if (table_[x][y]->continue_tag_ == 1) {
-			if (ny == period_in_moring_ - 1 || ny == period_per_day_ - 1)return 0;
-			if (table_[nx][ny] == NULL || (table_[nx][ny] != NULL && table_[nx][ny]->alterable_  &&
-				table_[nx][ny]->continue_tag_ != 2)) {
-				return CheckUnit( x, y + 1, nx, ny + 1, teachers);
-			}
-			return 0;
+		//1换1的情况
+		if (table_[nx][ny] != NULL) {
+			if (table_[nx][ny]->alterable_ == 0)return 0;
+			if (table_[nx][ny]->continue_tag_ != 0)return 0;
+			return CheckTeacherTime(nx, ny, x, y, teachers);
 		}
-		else {
-			if (ny == period_in_moring_ || ny == 0)return 0;
-			if (table_[nx][ny] == NULL || (table_[nx][ny] != NULL && table_[nx][ny]->alterable_ &&
-				table_[nx][ny]->continue_tag_ != 2))
-				return 1;
-			else return 0;
-		}
+		else return 1;
+		//因为1换1的情况下这个nx和ny肯定是该老师空余时间，所以一定能换成功
 	}
+}
+
+//检查该老师能否换到nx和ny的时间空格当中
+bool TimeTable::CheckTeacherTime(int x, int y, int nx, int ny, vector<Teacher> &teachers) {
+	pair<int, int> pt = make_pair(nx, ny);
+	int tid = table_[x][y]->teacher_.id_;
+	if (teachers[tid].available_time.find(pt) != teachers[tid].available_time.end())return 0;
+	else return 1;
 }
