@@ -196,7 +196,7 @@ void TimeTable::Mutate(double mp, vector<Teacher> &teachers) {
 				t++;
 			}
 			if (t == 15)continue;
-			cout << "timetable.mutate\n";
+			//cout << "timetable.mutate\n";
 			if(table_[x][y]->continue_tag_ == 0) UnitSwap(x, y, nx, ny, teachers);
 			else {
 				//Á¬ÌÃ¿Î½øÐÐÅÐ¶Ï

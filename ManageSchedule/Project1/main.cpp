@@ -175,9 +175,9 @@ void Output(Schedule res) {
 	ofstream fout("res.txt");
 	string name;
 	for (int i = 0; i < res.time_tables_.size(); i++) {
-		fout << "班级 " << i << endl << "     ";
+		fout << "班级 " << i << endl << "   ";
 		for (int x = 0; x < TimeTable::days_per_week_; x++) {
-			fout << "星期" << x + 1 << "     ";
+			fout << "星期" << x + 1 << "      ";
 		}
 		fout << endl;
 		for (int y = 0; y < TimeTable::period_per_day_; y++) {	
