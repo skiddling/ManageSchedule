@@ -72,6 +72,7 @@ void GA::Generate() {
 		//generation[0] = generation[1];
 		//test(generation[0]);
 		Modify();
+		cout << "modify\n";
 		//break;
 		CalFit();
 		break;

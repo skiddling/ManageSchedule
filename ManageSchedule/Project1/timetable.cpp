@@ -318,14 +318,15 @@ void TimeTable::SolveConflict(ClassUnit *cu, vector<Teacher> &teachers) {
 		swap(availtime[i], availtime[j]);
 	}
 	//ClassUnit *ct;
-	int x, y, nx, ny, tag;
+	int nx, ny;
+	cout << "timetable.modify\n";
 	for (int i = 0; i < availtime.size(); i++) {
 		x = cu->class_time_.first, nx = availtime[i].first;
 		y = cu->class_time_.second, ny = availtime[i].second;
 		//连堂课我们都是从连堂课的第一节开始进行判断,之前已经处理过了
 		if (CheckUnit(x, y, nx, ny, teachers)) {
 			UnitSwap(x, y, nx, ny, teachers);
-			if (table_[x][y]->continue_tag_) {				
+			if (cu->continue_tag_) {				
 				UnitSwap(x, y + 1, nx, ny + 1, teachers);
 			}
 			break;
