@@ -3,7 +3,6 @@
 map<string, int> Schedule::courses_map_;
 map<string, int> Schedule::teachers_map_;
 int Schedule::peri_upper_bound_ = 0;
-int Schedule::num_of_continue_classes = 0;
 
 void Schedule::GetPeirUpperBound() {
 	int mod = 10, teasize = teachers_map_.size();
@@ -28,7 +27,7 @@ void Schedule::Init(vector<Teacher> &teachers, vector<Course> &courses, vector<T
 		time_tables_[i].Init(time_tables[i], teachers_);
 		//cout << time_tables[i].table_.size();
 	}
-
+	num_of_continue_classes = 0;
 	for (int i = 0; i < time_tables.size(); i++) {
 		num_of_continue_classes += time_tables_[i].GetNumOfContinueClasses();
 	}

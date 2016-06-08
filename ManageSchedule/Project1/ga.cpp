@@ -22,7 +22,7 @@ void GA::Init() {
 		"  " << teachers_.size() << "  " << time_tables_.size() << endl;
 	//system("PAUSE");
 	//population_ = 300;
-	population_ = 3;
+	population_ = 100;
 	//c代表的是设定的概率值，不带c的表明的是代码运行当中用到的值
 	pof_mutate_ = c_pof_mutate_;
 	pof_mutate_gene_ = c_pof_mutate_gene_;

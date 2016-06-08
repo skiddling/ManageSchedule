@@ -13,7 +13,7 @@ public:
 	static map<string, int> teachers_map_;
 	//用于优化fitness的计算
 	static int peri_upper_bound_;
-	static int num_of_continue_classes;
+	int num_of_continue_classes;
 	int crash_;
 	int reward_;
 	double fitness_;
