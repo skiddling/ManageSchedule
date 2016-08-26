@@ -1,4 +1,4 @@
-#include "ga.h"
+#include "dbutils.h"
 
 map<string, int> teachersmap;//record the id of the teacher 
 map<string, int> coursesmap;//record the id of the course
@@ -195,13 +195,17 @@ void Output(Schedule res) {
 	fout.close();
 }
 
-int main() {
+int main(int argc, char* argv[]) {
 	srand((unsigned int)time(0));
-	Init();
+	Dbutils db;
+	db.GetDBData(argv, teachersmap, coursesmap, teachers, courses, timetables);
+	system("PAUSE");
+	return 0;
+	//Init();
 	//AddContinue();
 	//AddCant();
 	//AddItime();
-	Out();
+	//Out();
 	cout << "end of init\n";
 	//system("PAUSE");
 	//return 0;
