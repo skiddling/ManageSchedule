@@ -14,4 +14,5 @@ private:
 
 	void GetDBInfo(char* argv[]);
 	void GetPKTaskInfo();
+	void GetPKCourse();
 };
