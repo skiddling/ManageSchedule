@@ -54,12 +54,12 @@ void Init() {
 				}
 				//i is the classid, class_que is map
 				teachers[teachersmap[teachername]].class_que_[i] = vector<int>(courselenth);
-				for (int k = 0; k < courselenth; k++) {
+				/*for (int k = 0; k < courselenth; k++) {
 					ClassUnit *clsu = new ClassUnit(teachers[teachersmap[teachername]], i, classname, courses[j].course_name_, courses[j].course_id_);
 					teachers[teachersmap[teachername]].class_que_[i][k] = classunits[i].size();
 					clsu->unit_id_ = classunits[i].size();
 					classunits[i].push_back(clsu);
-				}
+				}*/
 			}
 		}
 	}

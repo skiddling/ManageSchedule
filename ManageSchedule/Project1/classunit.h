@@ -21,6 +21,7 @@
 class ClassUnit
 {
 public:
+	int dbid_;//数据库读取出来的id号
 	static int pim;//shrot for period in moring
 	int unit_id_;//该节课的id，是在所有课当中的顺序,和teacher当中的class_que当中的值对应
 	int class_id_;//班级号
@@ -35,7 +36,7 @@ public:
 	pair<int, int> class_time_;//该节课的具体的上课时间
 
 	ClassUnit();
-	ClassUnit(Teacher teacher, int class_id, string class_name, string course_name, int course_id);
+	ClassUnit(Teacher teacher, int class_id, string class_name, string course_name, int course_id, int dbid);
 	void AddCant(vector<pair<int, int> > &cant_time);
 	inline pair<int, int> get_time();
 	void AddUnit(int x, int y, vector<Teacher> &teachers);

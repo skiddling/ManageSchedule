@@ -11,12 +11,13 @@ ClassUnit::ClassUnit() {
 	class_time_ = make_pair(-1, -1);
 }
 
-ClassUnit::ClassUnit(Teacher teacher, int class_id, string class_name, string course_name, int course_id) {
-	course_id_ = course_id;
+ClassUnit::ClassUnit(Teacher teacher, int class_id, string class_name, string course_name, int course_id, int dbid):
+	teacher_(teacher), class_id_(class_id), class_name_(class_name) ,course_id_(course_id), course_name_(course_name), dbid_(dbid){
+	/*course_id_ = course_id;
 	course_name_ = course_name;
 	teacher_ = teacher;
 	class_id_ = class_id;
-	class_name_ = class_name;
+	class_name_ = class_name;*/
 	alterable_ = 1;
 	continue_tag_ = 0;
 	cant_time_ = vector<pair<int, int> >(0);

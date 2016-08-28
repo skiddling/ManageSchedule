@@ -163,11 +163,14 @@ void Dbutils::GetClassCourseLessonConfigInfo(map<string, int>& teachersmap, map<
 			_variant_t var;
 			string classname, teachername, coursename;
 			map<string, int> cname2id;
-			int i = 0, clid, coid, courselenth;
+			int i = 0, clid, coid, courselenth, dbid;
 			//vector<vector<ClassUnit *> > classunits;
 			vector<ClassUnit *> tempque;
 			m_pRecordset->MoveFirst();
 			while (!m_pRecordset->adoEOF) {
+				var = m_pRecordset->Fields->GetItem(_variant_t("id"))->Value;
+				dbid = static_cast<int>(var);
+
 				var = m_pRecordset->Fields->GetItem(_variant_t("className"))->Value;
 				classname = (const char*)_bstr_t(var);
 				if (cname2id.find(classname) == cname2id.end()) {
@@ -198,7 +201,7 @@ void Dbutils::GetClassCourseLessonConfigInfo(map<string, int>& teachersmap, map<
 				//cout << teachersmap[teachername] << endl;
 				teachers[teachersmap[teachername]].class_que_[clid] = vector<int>(courselenth);
 				for (int k = 0; k < courselenth; k++) {
-					ClassUnit *clsu = new ClassUnit(teachers[teachersmap[teachername]], clid, classname, courses[coid].course_name_, courses[coid].course_id_);
+					ClassUnit *clsu = new ClassUnit(teachers[teachersmap[teachername]], clid, classname, courses[coid].course_name_, courses[coid].course_id_, dbid);
 					//cout << teachersmap[teachername] << endl;
 					teachers[teachersmap[teachername]].class_que_[clid][k] = classunits[clid].size();
 					clsu->unit_id_ = classunits[clid].size();
@@ -268,4 +271,8 @@ void Dbutils::Out(map<string, int> &teachersmap, map<string, int> &coursesmap, v
 		fout << endl;
 	}
 	fout.close();
+}
+
+void Dbutils::OutPutPKTeaching(Schedule res) {
+
 }
