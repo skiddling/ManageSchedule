@@ -199,8 +199,8 @@ int main(int argc, char* argv[]) {
 	srand((unsigned int)time(0));
 	Dbutils db;
 	db.GetDBData(argv, teachersmap, coursesmap, teachers, courses, timetables);
-	system("PAUSE");
-	return 0;
+	//system("PAUSE");
+	//return 0;
 	//Init();
 	//AddContinue();
 	//AddCant();
