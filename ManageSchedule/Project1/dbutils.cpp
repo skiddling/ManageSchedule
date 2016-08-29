@@ -274,5 +274,60 @@ void Dbutils::Out(map<string, int> &teachersmap, map<string, int> &coursesmap, v
 }
 
 void Dbutils::OutPutPKTeaching(Schedule res) {
-
+	cout << "连接数据库，从SQL Server  输出PKTeaching信息" << endl;
+	CoInitialize(NULL);
+	_ConnectionPtr  sqlSp;
+	HRESULT hr = sqlSp.CreateInstance(_uuidof(Connection));
+	if (FAILED(hr)) {
+		cout << "_ConnectionPtr对象指针实例化失败！！！" << endl;
+		return;
+	}
+	else {
+		try {
+			//本地服务器 打开PKTaskInfo数据库 登录名为abc, 密码为123
+			string s = "Provider=SQLOLEDB;Server=127.0.0.1,1433;Database=" + dbname_ + ";uid="
+				+ dbuser_name_ + ";pwd=" + dbuser_pwd_ + ";";
+			_bstr_t strConnect = s.c_str();
+			sqlSp->Open(strConnect, "", "", adModeUnknown);
+		}
+		catch (_com_error &e) {
+			cerr << static_cast<string>(e.Description());
+		}
+		_RecordsetPtr m_pRecordset; //记录集对象指针，用来执行SQL语句并记录查询结果
+		if (FAILED(m_pRecordset.CreateInstance(_uuidof(Recordset)))) {
+			cout << "记录集对象指针实例化失败！" << endl;
+			return;
+		}
+		try {
+			//string s = "SELECT * FROM T_PKTask where id=" + task_id_;
+			string s = "SELECT * FROM T_PKTeaching";
+			m_pRecordset->Open(s.c_str(), (IDispatch*)sqlSp, adOpenDynamic, adLockOptimistic, adCmdText);//打开数据库，执行SQL语句		
+		}
+		catch (_com_error &e) {
+			cerr << static_cast<string>(e.Description());
+		}
+		try {
+			_variant_t var;
+			for (int i = 0; i < res.time_tables_.size(); i++) {
+				for (int x = 0; x < TimeTable::days_per_week_; x++) {
+					for (int y = 0; y < TimeTable::period_per_day_; y++) {
+						if (res.time_tables_[i].table_[x][y] != NULL) {
+							m_pRecordset->AddNew();
+							var = static_cast<_variant_t>(x + 1);
+							m_pRecordset->PutCollect("weekday", var);
+							var = static_cast<_variant_t>(y + 1);
+							m_pRecordset->PutCollect("section", var);
+							var = static_cast<_variant_t>(res.time_tables_[i].table_[x][y]->dbid_);
+							m_pRecordset->PutCollect("classCourseLessonConfig", var);
+						}
+					}
+				}
+			}
+			m_pRecordset->Update();
+			m_pRecordset->Close();
+		}
+		catch (_com_error &e) {
+			cerr << static_cast<string>(e.Description());
+		}
+	}
 }

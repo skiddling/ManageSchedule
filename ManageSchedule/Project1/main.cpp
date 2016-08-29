@@ -213,5 +213,6 @@ int main(int argc, char* argv[]) {
 	GA ga(teachersmap, coursesmap, teachers, courses, timetables);
 	ga.Generate();
 	Output(ga.res);
+	db.OutPutPKTeaching(ga.res);
 	return 0;
 }

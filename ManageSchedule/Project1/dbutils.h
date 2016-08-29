@@ -5,6 +5,7 @@ class Dbutils
 {
 public:
 	void GetDBData(char* argv[], map<string, int> &teachersmap, map<string, int> &coursesmap, vector<Teacher> &teachers, vector<Course> &courses, vector<TimeTable> &timetables);
+	void OutPutPKTeaching(Schedule res);
 
 private:
 	string dbname_;
@@ -18,5 +19,4 @@ private:
 	void GetPKCourse(map<string, int> &coursesmap, vector<Course> &courses);
 	void GetClassCourseLessonConfigInfo(map<string, int> &teachersmap, map<string, int> &coursesmap, vector<Teacher> &teachers, vector<Course> &courses, vector<TimeTable>& timetables);
 	void Out(map<string, int> &teachersmap, map<string, int> &coursesmap, vector<Teacher> &teachers, vector<Course> &courses, vector<TimeTable>& timetables);
-	void OutPutPKTeaching(Schedule res);
 };
