@@ -33,6 +33,7 @@ public:
 	bool alterable_;//预排课标志，1表示需要被排课，0表示已经限定该节课的时间，不能被安排
 	int	continue_tag_;//连堂标志，0表示该节次不是连堂客，1表示这个是连堂客的第一节，2表示第二节
 	vector<pair<int, int> > cant_time_;//该节课不能被安排上课的时间序列
+	set<pair<int, int> > canttime_;
 	pair<int, int> class_time_;//该节课的具体的上课时间
 
 	ClassUnit();

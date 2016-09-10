@@ -7,6 +7,7 @@ void Dbutils::GetDBData(char* argv[], map<string, int>& teachersmap, map<string,
 	GetPKTaskInfo();
 	GetPKCourse(coursesmap, courses);
 	GetClassCourseLessonConfigInfo(teachersmap, coursesmap, teachers, courses, timetables);
+	GetPKCourseNonTeachingInfo();
 }
 
 void Dbutils::GetDBInfo(char* argv[]) {
@@ -165,11 +166,13 @@ void Dbutils::GetClassCourseLessonConfigInfo(map<string, int>& teachersmap, map<
 			map<string, int> cname2id;
 			int i = 0, clid, coid, courselenth, dbid;
 			//vector<vector<ClassUnit *> > classunits;
-			vector<ClassUnit *> tempque;
+			vector<ClassUnit *> tempque, dbclsque;
 			m_pRecordset->MoveFirst();
 			while (!m_pRecordset->adoEOF) {
 				var = m_pRecordset->Fields->GetItem(_variant_t("id"))->Value;
 				dbid = static_cast<int>(var);
+				if (dbid2cls_.find(dbid) == dbid2cls_.end())
+					dbid2cls_[dbid] = dbclsque;
 
 				var = m_pRecordset->Fields->GetItem(_variant_t("className"))->Value;
 				classname = (const char*)_bstr_t(var);
@@ -202,6 +205,7 @@ void Dbutils::GetClassCourseLessonConfigInfo(map<string, int>& teachersmap, map<
 				teachers[teachersmap[teachername]].class_que_[clid] = vector<int>(courselenth);
 				for (int k = 0; k < courselenth; k++) {
 					ClassUnit *clsu = new ClassUnit(teachers[teachersmap[teachername]], clid, classname, courses[coid].course_name_, courses[coid].course_id_, dbid);
+					dbid2cls_[dbid].push_back(clsu);//add the clsu into the que of the dbid，用于不排课时间
 					//cout << teachersmap[teachername] << endl;
 					teachers[teachersmap[teachername]].class_que_[clid][k] = classunits[clid].size();
 					clsu->unit_id_ = classunits[clid].size();
@@ -222,6 +226,71 @@ void Dbutils::GetClassCourseLessonConfigInfo(map<string, int>& teachersmap, map<
 				}
 			}
 			Out(teachersmap, coursesmap, teachers, courses, timetables);
+		}
+		catch (_com_error &e) {
+			cerr << static_cast<string>(e.Description());
+		}
+	}
+}
+
+void Dbutils::GetPKCourseNonTeachingInfo() {
+	cout << "连接数据库，从SQL Server  读入GetPKCourseNonTeachingInfo" << endl;
+	CoInitialize(NULL);
+	_ConnectionPtr  sqlSp;
+	HRESULT hr = sqlSp.CreateInstance(_uuidof(Connection));
+	if (FAILED(hr)) {
+		cout << "_ConnectionPtr对象指针实例化失败！！！" << endl;
+		return;
+	}
+	else {
+		try {
+			//本地服务器 打开PKTaskInfo数据库 登录名为abc, 密码为123
+			string s = "Provider=SQLOLEDB;Server=127.0.0.1,1433;Database=" + dbname_ + ";uid="
+				+ dbuser_name_ + ";pwd=" + dbuser_pwd_ + ";";
+			_bstr_t strConnect = s.c_str();
+			sqlSp->Open(strConnect, "", "", adModeUnknown);
+		}
+		catch (_com_error &e) {
+			cerr << static_cast<string>(e.Description());
+		}
+		_RecordsetPtr m_pRecordset; //记录集对象指针，用来执行SQL语句并记录查询结果
+		if (FAILED(m_pRecordset.CreateInstance(_uuidof(Recordset)))) {
+			cout << "记录集对象指针实例化失败！" << endl;
+			return;
+		}
+		try {
+			//string s = "SELECT * FROM T_PKTask where id=" + task_id_;
+			string s = "SELECT * FROM T_PKTeachingClassNonTeaching";
+			m_pRecordset->Open(s.c_str(), (IDispatch*)sqlSp, adOpenDynamic, adLockOptimistic, adCmdText);//打开数据库，执行SQL语句		
+		}
+		catch (_com_error &e) {
+			cerr << static_cast<string>(e.Description());
+		}
+		try {
+			/*coursesmap.clear();
+			teachersmap.clear();*/
+			_variant_t var;
+			//string classname, teachername, coursename;
+			//map<string, int> cname2id;
+			int x, y, dbid;
+			pair<int, int> time;
+			//vector<vector<ClassUnit *> > classunits;
+			//vector<ClassUnit *> tempque, dbclsque;
+			m_pRecordset->MoveFirst();
+			while (!m_pRecordset->adoEOF) {
+				var = m_pRecordset->Fields->GetItem(_variant_t("weekday"))->Value;
+				x = static_cast<int>(var) - 1;
+				var = m_pRecordset->Fields->GetItem(_variant_t("section"))->Value;
+				y = static_cast<int>(var) - 1;
+				time = make_pair(x, y);
+				var = m_pRecordset->Fields->GetItem(_variant_t("classCourseLessonConfig"))->Value;
+				dbid = static_cast<int>(var);
+				for (auto unit : dbid2cls_[dbid]) {
+					unit->canttime_.insert(time);
+				}
+				//cout << "hello world" << endl;
+				m_pRecordset->MoveNext();
+			}
 		}
 		catch (_com_error &e) {
 			cerr << static_cast<string>(e.Description());
@@ -272,6 +341,7 @@ void Dbutils::Out(map<string, int> &teachersmap, map<string, int> &coursesmap, v
 	}
 	fout.close();
 }
+
 
 void Dbutils::OutPutPKTeaching(Schedule res) {
 	cout << "连接数据库，从SQL Server  输出PKTeaching信息" << endl;
