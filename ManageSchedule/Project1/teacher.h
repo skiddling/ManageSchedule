@@ -30,6 +30,7 @@ public:
 	//map<pair<int, int>, int> num_of_period_;//记录该老师在一周中上多少个半天，用于计算reward
 	vector<vector<int> > num_of_period;//记录老师在一周上多少个半天
 	map<pair<int, int>, bool> available_time;//记录老师在该时段是否空闲，常与roomtime合用
+	set<pair<int, int> > cannt_time_;//该老师不能被分配上课的时间
 	Teacher();
 	Teacher(int teacher_id, string teacher_name);
 	void InitAvailable(int daysperweek, int periodperday);

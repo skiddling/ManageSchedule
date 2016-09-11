@@ -65,6 +65,9 @@ void TimeTable::Init(TimeTable &time_table, vector<Teacher> &teachers) {
 				else {
 					x = d;
 					y = randtable[d].back();
+					/*if (class_que_[i].CheckUnitTime(x, y) || class_que_[i].CheckUnitTime(x, y + 1)) {
+						continue;
+					}*/
 					randtable[d].pop_back();
 				}
 			}
@@ -282,6 +285,7 @@ void TimeTable::Modify(vector<Teacher> &teachers) {
 			if (table_[x][y] != NULL) {
 				ClassUnit *cu = table_[x][y];
 				//该老师上课时间冲突需要调整
+				//该节课也有相应的时间上的冲突
 				if (cu->IsConflict(teachers)) {
 					SolveConflict(cu ,teachers);
 				}
@@ -347,6 +351,8 @@ void TimeTable::SolveConflict(ClassUnit *cu, vector<Teacher> &teachers) {
 bool TimeTable::CheckUnit(int x, int y, int nx, int ny, vector<Teacher> &teachers) {
 	//1.先判断是否是连堂课	
 	//虽然在之前第一个调用处做了限制，但是这里仍然会涉及到自己调用自己的情况,所以continuetag仍然会是存在1和2
+	if (table_[x][y]->CheckUnitTime(nx, ny))return 0;
+	if (table_[nx][ny]->CheckUnitTime(x, y))return 0;
 	if (table_[x][y]->continue_tag_) {
 		if (table_[x][y]->continue_tag_ == 1) {
 			if (y == period_in_moring_ - 1 || y == period_per_day_ - 1)return 0;

@@ -100,5 +100,13 @@ bool ClassUnit::IsConflict(vector<Teacher> &teachers) {
 	pair<int, int> rt = make_pair(x, class_id_);
 	if (teachers[tid].class_table_[pt] > 1)return 1;
 	if (teachers[tid].room_time_[rt] > 1)return 1;
-	return 0;
+	return CheckUnitTime(x, y);
+	//return 0;
+}
+
+bool ClassUnit::CheckUnitTime(int x, int y) {
+	pair<int, int> tp = make_pair(x, y);
+	//这个时间段不能放返回1，能放返回0
+	if (canttime_.find(tp) != canttime_.end())return true;
+	return false;
 }

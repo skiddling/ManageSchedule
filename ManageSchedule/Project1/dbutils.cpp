@@ -288,6 +288,7 @@ void Dbutils::GetPKCourseNonTeachingInfo() {
 				for (auto unit : dbid2cls_[dbid]) {
 					unit->canttime_.insert(time);
 				}
+				//dbid2cls_[dbid][0]->teacher_.cannt_time_.insert(time);
 				//cout << "hello world" << endl;
 				m_pRecordset->MoveNext();
 			}

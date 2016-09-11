@@ -43,4 +43,5 @@ public:
 	void AddUnit(int x, int y, vector<Teacher> &teachers);
 	void DelUnit(vector<Teacher> &teachers);
 	bool IsConflict(vector<Teacher> &teachers);
+	bool CheckUnitTime(int x, int y);
 };

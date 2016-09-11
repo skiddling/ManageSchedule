@@ -16,6 +16,7 @@ void Teacher::InitAvailable(int daysperweek, int periodperday) {
 	for (int x = 0; x < daysperweek; x++) {
 		for (int y = 0; y < periodperday; y++) {
 			pair<int, int> pt = make_pair(x, y);
+			//if(cannt_time_.find(pt) == cannt_time_.end()) available_time[pt] = 1;
 			available_time[pt] = 1;
 		}
 	}
