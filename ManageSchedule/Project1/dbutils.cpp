@@ -21,7 +21,8 @@ string Dbutils::SetDBProperties() {
 }
 
 void Dbutils::GetDBInfo(char* argv[]) {
-	//task_id_ = string(argv[1]);
+	pk_task_id_ = string(argv[1]);
+	//pk_task_id_ = string("6");
 	//fstream fin("dbinfo.txt");
 	fstream fin("pkjdbc.properties");
 	//fin >> dbname_ >> dbuser_name_ >> dbuser_pwd_;
@@ -31,7 +32,7 @@ void Dbutils::GetDBInfo(char* argv[]) {
 	CutString(dbname_);
 	CutString(dbuser_name_);
 	CutString(dbuser_pwd_);
-	cout << dbname_ << " " << dbuser_name_ << " " << dbuser_pwd_ << endl;
+	cout << db_port_ << " " << dbname_ << " " << dbuser_name_ << " " << dbuser_pwd_ << endl;
 	fin.close();
 }
 
@@ -62,8 +63,8 @@ void Dbutils::GetPKTaskInfo() {
 			return;
 		}
 		try {
-			//string s = "SELECT * FROM T_PKTask where id=" + task_id_;
-			string s = "SELECT * FROM T_PKTask where id=2";
+			string s = "SELECT * FROM T_PKTask where id=" + pk_task_id_;
+			//string s = "SELECT * FROM T_PKTask where id=2";
 			m_pRecordset->Open(s.c_str(), (IDispatch*)sqlSp, adOpenDynamic, adLockOptimistic, adCmdText);//打开数据库，执行SQL语句		
 		}
 		catch (_com_error &e) {
@@ -115,8 +116,8 @@ void Dbutils::GetPKCourse(map<string, int> &coursesmap, vector<Course> &courses)
 			return;
 		}
 		try {
-			//string s = "SELECT * FROM T_PKTask where id=" + task_id_;
-			string s = "SELECT * FROM T_PKCourse";
+			string s = "SELECT * FROM T_PKCourse where pkTaskId=" + pk_task_id_;
+			//string s = "SELECT * FROM T_PKCourse";
 			m_pRecordset->Open(s.c_str(), (IDispatch*)sqlSp, adOpenDynamic, adLockOptimistic, adCmdText);//打开数据库，执行SQL语句		
 		}
 		catch (_com_error &e) {
@@ -171,8 +172,8 @@ void Dbutils::GetClassCourseLessonConfigInfo(map<string, int>& teachersmap, map<
 			return;
 		}
 		try {
-			//string s = "SELECT * FROM T_PKTask where id=" + task_id_;
-			string s = "SELECT * FROM T_ClassCourseLessonConfig";
+			string s = "SELECT * FROM T_ClassCourseLessonConfig where pkTaskId=" + pk_task_id_;
+			//string s = "SELECT * FROM T_ClassCourseLessonConfig";
 			m_pRecordset->Open(s.c_str(), (IDispatch*)sqlSp, adOpenDynamic, adLockOptimistic, adCmdText);//打开数据库，执行SQL语句		
 		}
 		catch (_com_error &e) {
@@ -280,8 +281,8 @@ void Dbutils::GetPKCourseNonTeachingInfo() {
 			return;
 		}
 		try {
-			//string s = "SELECT * FROM T_PKTask where id=" + task_id_;
-			string s = "SELECT * FROM T_PKTeachingClassNonTeaching";
+			string s = "SELECT * FROM T_PKTeachingClassNonTeaching where pkTaskId=" + pk_task_id_;
+			//string s = "SELECT * FROM T_PKTeachingClassNonTeaching";
 			m_pRecordset->Open(s.c_str(), (IDispatch*)sqlSp, adOpenDynamic, adLockOptimistic, adCmdText);//打开数据库，执行SQL语句		
 		}
 		catch (_com_error &e) {
@@ -392,8 +393,8 @@ void Dbutils::OutPutPKTeaching(Schedule res) {
 			return;
 		}
 		try {
-			//string s = "SELECT * FROM T_PKTask where id=" + task_id_;
-			string s = "SELECT * FROM T_PKTeaching";
+			string s = "SELECT * FROM T_PKTeaching where pkTaskId=" + pk_task_id_;
+			//string s = "SELECT * FROM T_PKTeaching";
 			m_pRecordset->Open(s.c_str(), (IDispatch*)sqlSp, adOpenDynamic, adLockOptimistic, adCmdText);//打开数据库，执行SQL语句		
 		}
 		catch (_com_error &e) {

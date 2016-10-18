@@ -107,6 +107,6 @@ bool ClassUnit::IsConflict(vector<Teacher> &teachers) {
 bool ClassUnit::CheckUnitTime(int x, int y) {
 	pair<int, int> tp = make_pair(x, y);
 	//这个时间段不能放返回1，能放返回0
-	if (canttime_.find(tp) != canttime_.end())return true;
+	if (!canttime_.empty() && canttime_.find(tp) != canttime_.end())return true;
 	return false;
 }

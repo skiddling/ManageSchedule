@@ -352,7 +352,7 @@ bool TimeTable::CheckUnit(int x, int y, int nx, int ny, vector<Teacher> &teacher
 	//1.先判断是否是连堂课	
 	//虽然在之前第一个调用处做了限制，但是这里仍然会涉及到自己调用自己的情况,所以continuetag仍然会是存在1和2
 	if (table_[x][y]->CheckUnitTime(nx, ny))return 0;
-	if (table_[nx][ny]->CheckUnitTime(x, y))return 0;
+	if (table_[nx][ny] != NULL && table_[nx][ny]->CheckUnitTime(x, y))return 0;
 	if (table_[x][y]->continue_tag_) {
 		if (table_[x][y]->continue_tag_ == 1) {
 			if (y == period_in_moring_ - 1 || y == period_per_day_ - 1)return 0;

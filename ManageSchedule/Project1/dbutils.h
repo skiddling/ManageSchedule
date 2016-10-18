@@ -13,7 +13,7 @@ private:
 	string dbuser_name_;
 	string dbuser_pwd_;
 	string db_port_;
-	string task_id_;//记录这次排课的id，传进来的参数
+	string pk_task_id_;//记录这次排课的id，传进来的参数
 	vector<vector<ClassUnit *> > classunits;
 	map<int, vector<ClassUnit*> > dbid2cls_;
 
