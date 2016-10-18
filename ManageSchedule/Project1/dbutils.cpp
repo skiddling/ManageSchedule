@@ -401,7 +401,7 @@ void Dbutils::OutPutPKTeaching(Schedule res) {
 			cerr << static_cast<string>(e.Description());
 		}
 		try {
-			_variant_t var;
+			_variant_t var, pktaskid = static_cast<_variant_t>(pk_task_id_.c_str());
 			for (int i = 0; i < res.time_tables_.size(); i++) {
 				for (int x = 0; x < TimeTable::days_per_week_; x++) {
 					for (int y = 0; y < TimeTable::period_per_day_; y++) {
@@ -413,6 +413,7 @@ void Dbutils::OutPutPKTeaching(Schedule res) {
 							m_pRecordset->PutCollect("section", var);
 							var = static_cast<_variant_t>(res.time_tables_[i].table_[x][y]->dbid_);
 							m_pRecordset->PutCollect("classCourseLessonConfig", var);
+							m_pRecordset->PutCollect("pkTaskId", pktaskid);
 						}
 					}
 				}
