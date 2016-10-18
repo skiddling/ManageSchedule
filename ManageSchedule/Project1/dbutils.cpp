@@ -11,7 +11,7 @@ void Dbutils::GetDBData(char* argv[], map<string, int>& teachersmap, map<string,
 }
 
 void Dbutils::CutString(string & s) {
-	s = s.substr(s.find("="), s.length() - s.find("="));
+	s = s.substr(s.find("=") + 1, s.length() - s.find("=") - 1);
 }
 
 string Dbutils::SetDBProperties() {
