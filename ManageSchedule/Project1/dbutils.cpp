@@ -10,10 +10,27 @@ void Dbutils::GetDBData(char* argv[], map<string, int>& teachersmap, map<string,
 	GetPKCourseNonTeachingInfo();
 }
 
+void Dbutils::CutString(string & s) {
+	s = s.substr(s.find("="), s.length() - s.find("="));
+}
+
+string Dbutils::SetDBProperties() {
+	string s = "Provider=SQLOLEDB;Server=127.0.0.1," + db_port_ + ";Database=" + dbname_ + ";uid="
+		+ dbuser_name_ + ";pwd=" + dbuser_pwd_ + ";";
+	return s;
+}
+
 void Dbutils::GetDBInfo(char* argv[]) {
 	//task_id_ = string(argv[1]);
-	fstream fin("dbinfo.txt");
-	fin >> dbname_ >> dbuser_name_ >> dbuser_pwd_;
+	//fstream fin("dbinfo.txt");
+	fstream fin("pkjdbc.properties");
+	//fin >> dbname_ >> dbuser_name_ >> dbuser_pwd_;
+	fin >> db_server_ >> db_port_ >> dbname_ >> dbuser_name_ >> dbuser_pwd_;
+	CutString(db_server_);
+	CutString(db_port_);
+	CutString(dbname_);
+	CutString(dbuser_name_);
+	CutString(dbuser_pwd_);
 	cout << dbname_ << " " << dbuser_name_ << " " << dbuser_pwd_ << endl;
 	fin.close();
 }
@@ -30,8 +47,9 @@ void Dbutils::GetPKTaskInfo() {
 	else {
 		try {
 			//本地服务器 打开PKTaskInfo数据库 登录名为abc, 密码为123
-			string s = "Provider=SQLOLEDB;Server=127.0.0.1,1433;Database=" + dbname_ + ";uid="
-				+ dbuser_name_ + ";pwd=" + dbuser_pwd_ + ";";
+			/*string s = "Provider=SQLOLEDB;Server=127.0.0.1,1433;Database=" + dbname_ + ";uid="
+				+ dbuser_name_ + ";pwd=" + dbuser_pwd_ + ";";*/
+			string s = SetDBProperties();
 			_bstr_t strConnect = s.c_str();
 			sqlSp->Open(strConnect, "", "", adModeUnknown);
 		}
@@ -82,8 +100,9 @@ void Dbutils::GetPKCourse(map<string, int> &coursesmap, vector<Course> &courses)
 	else {
 		try {
 			//本地服务器 打开PKTaskInfo数据库 登录名为abc, 密码为123
-			string s = "Provider=SQLOLEDB;Server=127.0.0.1,1433;Database=" + dbname_ + ";uid="
-				+ dbuser_name_ + ";pwd=" + dbuser_pwd_ + ";";
+			/*string s = "Provider=SQLOLEDB;Server=127.0.0.1,1433;Database=" + dbname_ + ";uid="
+				+ dbuser_name_ + ";pwd=" + dbuser_pwd_ + ";";*/
+			string s = SetDBProperties();
 			_bstr_t strConnect = s.c_str();
 			sqlSp->Open(strConnect, "", "", adModeUnknown);
 		}
@@ -137,8 +156,9 @@ void Dbutils::GetClassCourseLessonConfigInfo(map<string, int>& teachersmap, map<
 	else {
 		try {
 			//本地服务器 打开PKTaskInfo数据库 登录名为abc, 密码为123
-			string s = "Provider=SQLOLEDB;Server=127.0.0.1,1433;Database=" + dbname_ + ";uid="
-				+ dbuser_name_ + ";pwd=" + dbuser_pwd_ + ";";
+			/*string s = "Provider=SQLOLEDB;Server=127.0.0.1,1433;Database=" + dbname_ + ";uid="
+				+ dbuser_name_ + ";pwd=" + dbuser_pwd_ + ";";*/
+			string s = SetDBProperties();
 			_bstr_t strConnect = s.c_str();
 			sqlSp->Open(strConnect, "", "", adModeUnknown);
 		}
@@ -245,8 +265,9 @@ void Dbutils::GetPKCourseNonTeachingInfo() {
 	else {
 		try {
 			//本地服务器 打开PKTaskInfo数据库 登录名为abc, 密码为123
-			string s = "Provider=SQLOLEDB;Server=127.0.0.1,1433;Database=" + dbname_ + ";uid="
-				+ dbuser_name_ + ";pwd=" + dbuser_pwd_ + ";";
+			/*string s = "Provider=SQLOLEDB;Server=127.0.0.1,1433;Database=" + dbname_ + ";uid="
+				+ dbuser_name_ + ";pwd=" + dbuser_pwd_ + ";";*/
+			string s = SetDBProperties();
 			_bstr_t strConnect = s.c_str();
 			sqlSp->Open(strConnect, "", "", adModeUnknown);
 		}
@@ -356,8 +377,9 @@ void Dbutils::OutPutPKTeaching(Schedule res) {
 	else {
 		try {
 			//本地服务器 打开PKTaskInfo数据库 登录名为abc, 密码为123
-			string s = "Provider=SQLOLEDB;Server=127.0.0.1,1433;Database=" + dbname_ + ";uid="
-				+ dbuser_name_ + ";pwd=" + dbuser_pwd_ + ";";
+			/*string s = "Provider=SQLOLEDB;Server=127.0.0.1,1433;Database=" + dbname_ + ";uid="
+				+ dbuser_name_ + ";pwd=" + dbuser_pwd_ + ";";*/
+			string s = SetDBProperties();
 			_bstr_t strConnect = s.c_str();
 			sqlSp->Open(strConnect, "", "", adModeUnknown);
 		}
