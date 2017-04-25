@@ -1,13 +1,33 @@
 #pragma once
-#include "teacher.h"
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <random>
+#include <algorithm>
+#include <ctime>
+#include <fstream>
+#include <sstream>
+#include <utility>
+#include <set>
+#include <thread>
+#include <future>
+#include <mutex>
+#include <functional>
+#include <chrono>
 
-//course类只是为了方便找出每个老师的信息
+using namespace std;
+
+class ClassUnit;
+class TimeTable;
+
 class Course
 {
 public:
 	int course_id_;
-	vector<Teacher> teacher_queue_;//该科目下的所有老师，用于方便输入数据以及输出课表用
 	string course_name_;
-	Course();
-	Course(int course_id, string course_name);
+	Course(string cname);
+private:
+	vector<Course> unioncous_;//合班的课程
+	//Course(int course_id, string course_name);
 };
