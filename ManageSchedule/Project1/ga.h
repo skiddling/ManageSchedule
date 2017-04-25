@@ -1,5 +1,6 @@
 #pragma once
 #include "schedule.h"
+#include "InterruptibleThread.h"
 
 class GA
 {
@@ -15,4 +16,5 @@ private:
 
 	void InitSchedules();
 	void GenerateTable();
+	void GetSchedule(int thid, InterruptibleThread* t, future<Schedule>* fut);
 };
