@@ -36,6 +36,12 @@
     <ClInclude Include="dbutils.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="interruptflag.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="InterruptibleThread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="teacher.cpp">
@@ -60,6 +66,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="dbutils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="interruptflag.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="interruptiblethread.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

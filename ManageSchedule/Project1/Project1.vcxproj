@@ -117,6 +117,8 @@
     <ClInclude Include="classunit.h" />
     <ClInclude Include="dbutils.h" />
     <ClInclude Include="ga.h" />
+    <ClInclude Include="interruptflag.h" />
+    <ClInclude Include="InterruptibleThread.h" />
     <ClInclude Include="schedule.h" />
     <ClInclude Include="teacher.h" />
     <ClInclude Include="timetable.h" />
@@ -125,6 +127,8 @@
     <ClCompile Include="course.cpp" />
     <ClCompile Include="dbutils.cpp" />
     <ClCompile Include="ga.cpp" />
+    <ClCompile Include="interruptflag.cpp" />
+    <ClCompile Include="interruptiblethread.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="classunit.cpp" />
     <ClCompile Include="schedule.cpp" />

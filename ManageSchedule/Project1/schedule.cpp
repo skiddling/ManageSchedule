@@ -33,8 +33,15 @@ void Schedule::GetSchedule(InterruptibleThread * t, future<Schedule>* fut) {
 	}
 }
 
-void Schedule::CalFitness() {
+void Schedule::UpdateFromRes() {
+}
 
+void Schedule::init() {
+	for (auto& t : timetables_)
+		t.Init();
+}
+
+void Schedule::CalFitness() {
 }
 
 void Schedule::Cross() {
