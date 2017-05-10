@@ -6,13 +6,9 @@ class TimeTable;
 class ClassUnit
 {
 public:
-	string GetTeaName();
-	string GetCouName();
-	int GetDuration();
-	bool GetType();
+	
 	pair<int, int> stime_;//具体这节课的起始时间
-	TimeTable* ttbptr_;//指向自己所在课表的指针
-	void PutIntoTable(int day, int period);
+	TimeTable* ttbptr_;//指向自己所在课表的指针，这个是要在赋值的时候修改的
 	bool hasbeenput_;//表示这节课是否已经被放到课表当中，用于课表初始化
 	
 	//方便课表初始化操作
@@ -24,6 +20,12 @@ public:
 		else if (canntbeput_.size() != c.canntbeput_.size())
 			return canntbeput_.size() > c.canntbeput_.size();
 	}
+	
+	string GetTeaName();
+	string GetCouName();
+	int GetDuration();
+	bool GetType();
+	void PutIntoTable(int day, int period);
 
 private:
 	string teaname_, couname_;

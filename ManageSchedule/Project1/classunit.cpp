@@ -21,9 +21,11 @@ void ClassUnit::PutIntoTable(int day, int period) {
 	hasbeenput_ = true;
 	stime_.first = day;
 	stime_.second = period;
+	//设置连堂课
 	for (auto i = 0; i < duration_; i++) {
 		ttbptr_->roomtable_[day][period] = this;
 	}
+	//设置合班课
 	if (unioclsid_.size()) {
 		for (auto i = 0; i < unioncls_.size(); i++) {
 			if (unioncls_[i]->hasbeenput_ == false) {

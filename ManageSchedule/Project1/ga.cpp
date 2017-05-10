@@ -3,12 +3,14 @@
 GA::GA() {
 	num_of_threads_ = 1;
 	//num_of_threads_ = thread::hardware_concurrency();
-	InitSchedules();//生成一个初步的课表res_，然后通过拷贝到相应的各个具体课表当中去
+	//生成一个初步的课表res_，然后通过拷贝到相应的各个具体课表当中去
+	InitSchedules();
+	//schedule copy construction 
 	schedules_ = vector<Schedule>(num_of_threads_ * thread_schedule_size_, res_);
-	
 }
 
 void GA::InitSchedules() {
+	//step 1. init schedule res
 	//每个schedule不能进行拷贝，只能通过独立的初始化产生
 	res_.init();
 }
