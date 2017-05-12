@@ -1,12 +1,10 @@
 #pragma once
-#include "course.h"
-
-class TimeTable;
+#include "teacher.h"
 
 class ClassUnit
 {
 public:
-	
+	Teacher* teacher_;//这节课的任课老师的指针
 	pair<int, int> stime_;//具体这节课的起始时间
 	TimeTable* ttbptr_;//指向自己所在课表的指针，这个是要在赋值的时候修改的
 	bool hasbeenput_;//表示这节课是否已经被放到课表当中，用于课表初始化
@@ -26,6 +24,9 @@ public:
 	int GetDuration();
 	bool GetType();
 	void PutIntoTable(int day, int period);
+	int CalFitness();
+	int GetTeacherIdInVec();
+	int GetTimeTableIdInVec();
 
 private:
 	string teaname_, couname_;

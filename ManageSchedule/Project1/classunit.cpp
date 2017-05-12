@@ -21,9 +21,12 @@ void ClassUnit::PutIntoTable(int day, int period) {
 	hasbeenput_ = true;
 	stime_.first = day;
 	stime_.second = period;
-	//设置连堂课
+	if (type_ == 1)teacher_->normalappear_[day] = 1;
 	for (auto i = 0; i < duration_; i++) {
-		ttbptr_->roomtable_[day][period] = this;
+		//更新教室信息
+		ttbptr_->roomtable_[day][period + i] = this;
+		//更新教师信息
+		teacher_->AddClsInPeriod(day, period + i);
 	}
 	//设置合班课
 	if (unioclsid_.size()) {
@@ -33,4 +36,29 @@ void ClassUnit::PutIntoTable(int day, int period) {
 			}
 		}
 	}
+}
+
+int ClassUnit::CalFitness() {
+	pair<int, int> tmp = stime_;
+	for (auto i = 0; i < duration_; i++) {
+		//1.被放在了不能放的时间段
+		if (canntbeput_.find(tmp) != canntbeput_.end())
+			return 1;
+		//2.安排的时间老师有冲突
+		if (teacher_->GetClsNumInPeriod(tmp) > 1)
+			return 1;
+		tmp.second++;
+	}
+	//3.辅助类型的课没有和普通类型的课放在同一天
+	if (type_ == 0 && teacher_->HasNormalClsInDay(stime_.first) == 0)
+		return 1;
+	return 0;
+}
+
+int ClassUnit::GetTeacherIdInVec() {
+	return teacher_->idinque_;
+}
+
+int ClassUnit::GetTimeTableIdInVec() {
+	return ttbptr_->roomid_;
 }

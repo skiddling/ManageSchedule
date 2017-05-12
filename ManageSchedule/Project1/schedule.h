@@ -7,21 +7,22 @@
 class Schedule
 {
 public:
-
-	vector<TimeTable> timetables_;
+	vector<Teacher> teachers_;//所有的教师的实体
+	vector<ClassUnit> clsque_;//全部节次的课
+	vector<TimeTable> timetables_;//所有的班级课表，相当于是一个指针容器
 	int outtime_;
 	int crash_;
 
-	Schedule();
+	Schedule() = default;
 	//copy construction
 	Schedule(const Schedule& s);
 	Schedule& operator=(const Schedule& s);
 	void GetSchedule(InterruptibleThread* t, future<Schedule>* fut);
-	void UpdateFromRes();
 	void init();
 	
 private:
 	void CalFitness();
 	void Cross();
 	void Modify();
+	void UpdatePtrs();
 };

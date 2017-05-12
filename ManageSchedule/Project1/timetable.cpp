@@ -1,10 +1,19 @@
 #include "timetable.h"
 
+void TimeTable::CalFitness(int& crash) {
+	/*
+	检查每一节课是否存在冲突
+	*/
+	for (auto& c : clsque_) {
+		crash += c->CalFitness();
+	}
+}
+
 TimeTable::TimeTable(const TimeTable & t):
 	clsque_(t.clsque_), days_(t.days_), periods_(t.periods_),
 	roomid_(t.roomid_), roomname_(t.roomname_), roomtable_(t.roomtable_){
 	//更新roomtalbe信息记录	
-	for()
+	//for()
 }
 
 TimeTable & TimeTable::operator=(const TimeTable & t) {
@@ -23,8 +32,8 @@ void TimeTable::Init() {
 	for (auto j = 0, k = 0; j < periods_; j++) {
 		for (auto i = 0; i < days_;) {
 			//只有当当前节次为空，而且该节课也未被安排才能将当前课安排到当前节次
-			if (roomtable_[i][j] == NULL && clsque_[k].hasbeenput_ == false) {
-				clsque_[k].PutIntoTable(i, j);
+			if (roomtable_[i][j] == NULL && clsque_[k]->hasbeenput_ == false) {
+				clsque_[k]->PutIntoTable(i, j);
 			}
 			else if (roomtable_[j][i] != NULL) {
 				i++;
@@ -44,10 +53,10 @@ void TimeTable::UpdatePtrs() {
 	目前唯一已知的就是当前这个节次的时间
 	*/
 	for (auto& c : clsque_) {
-		c.ttbptr_ = this;
+		c->ttbptr_ = this;
 	}
 	for (auto i = 0; i < clsque_.size(); i++) {
-		auto day = clsque_[i].stime_.first, period = clsque_[i].stime_.second;
-		roomtable_[day][period] = &clsque_[i];
+		auto day = clsque_[i]->stime_.first, period = clsque_[i]->stime_.second;
+		roomtable_[day][period] = clsque_[i];
 	}
 }

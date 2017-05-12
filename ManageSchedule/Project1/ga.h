@@ -13,10 +13,11 @@ public:
 private:
 	int num_of_threads_;
 	const int thread_schedule_size_ = 5;
+	//实体对象
 	vector<Schedule> schedules_;
+	vector<Teacher> teachers_;
 	vector<ClassUnit> units_;
 	vector<Course> courses_;
-	vector<Teacher> teachers_;
 
 	void InitSchedules();
 	void GenerateTable();
