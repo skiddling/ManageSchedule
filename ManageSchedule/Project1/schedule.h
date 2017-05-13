@@ -12,8 +12,9 @@ public:
 	vector<TimeTable> timetables_;//所有的班级课表，相当于是一个指针容器
 	int outtime_;
 	int crash_;
+	const double mxpocross_ = 0.2;
 
-	Schedule() = default;
+	Schedule();
 	//copy construction
 	Schedule(const Schedule& s);
 	Schedule& operator=(const Schedule& s);
@@ -21,8 +22,11 @@ public:
 	void init();
 	
 private:
+	default_random_engine e_;
 	void CalFitness();
 	void Cross();
 	void Modify();
 	void UpdatePtrs();
+
+	void SwapClsUnit(ClassUnit& firstcls);
 };

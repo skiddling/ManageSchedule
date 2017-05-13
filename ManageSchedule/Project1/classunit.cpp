@@ -1,6 +1,10 @@
 #include "ClassUnit.h"
 #include "timetable.h"
 
+ClassUnit::ClassUnit() {
+	e_ = default_random_engine(time(NULL));
+}
+
 string ClassUnit::GetTeaName() {
 	return teaname_;
 }
@@ -61,4 +65,29 @@ int ClassUnit::GetTeacherIdInVec() {
 
 int ClassUnit::GetTimeTableIdInVec() {
 	return ttbptr_->roomid_;
+}
+
+vector<pair<int, int>> ClassUnit::GetRandAvailTime() {
+	set<pair<int, int>> tmp = canbeput_;
+	pair<int, int> now{stime_.first, stime_.second};
+	if (tmp.find(now) != tmp.end()) {
+		tmp.erase(tmp.find(now));
+	}
+	vector<pair<int, int>> vec;
+	if (!tmp.empty()) {
+		for (auto p : tmp) {
+			vec.push_back(p);
+		}
+		GetRandSet(vec);
+	}
+	return vec;
+}
+
+void ClassUnit::GetRandSet(vector<pair<int, int>>& randset) {
+	int id, sz = randset.size();
+	uniform_int_distribution<int> u(0, sz - 1);
+	for (auto i = 0; i < sz; i++) {
+		id = u(e_);
+		if (id != i)swap(randset[i], randset[id]);
+	}
 }

@@ -4,6 +4,7 @@
 class ClassUnit
 {
 public:
+	ClassUnit();
 	Teacher* teacher_;//这节课的任课老师的指针
 	pair<int, int> stime_;//具体这节课的起始时间
 	TimeTable* ttbptr_;//指向自己所在课表的指针，这个是要在赋值的时候修改的
@@ -27,8 +28,10 @@ public:
 	int CalFitness();
 	int GetTeacherIdInVec();
 	int GetTimeTableIdInVec();
+	vector<pair<int, int>> GetRandAvailTime();
 
 private:
+	default_random_engine e_;
 	string teaname_, couname_;
 	int duration_;//课时长度
 	int type_;//这节课的类型，1表示普通，0表示辅助，2表示是普通类型的连堂课，但是辅助类型不能和他一起在同一天出现
@@ -37,4 +40,7 @@ private:
 	vector<int> unioclsid_;//合班课程id
 	pair<int, int> headunit_;
 	set<pair<int, int>> canntbeput_;//具体之这节课不能安排时间
+	set<pair<int, int>> canbeput_;//与canntbeput是补集
+
+	void GetRandSet(vector<pair<int, int>>& randset);
 };
