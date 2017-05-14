@@ -18,6 +18,7 @@ public:
 	TimeTable& operator=(const TimeTable& t);
 	void Init();
 	void UpdatePtrs();
+	ClassUnit** GetClsUnitPtr(int day, int period);
 private:
 	
 

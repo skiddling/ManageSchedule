@@ -109,6 +109,17 @@ void Schedule::UpdatePtrs() {
 		//2.把这个课和相应的上课教室挂钩
 		timetables_[c.GetTimeTableIdInVec()].clsque_.push_back(&c);
 		c.ttbptr_ = &timetables_[c.GetTimeTableIdInVec()];
+		c.headptr_ = &(c.ttbptr_->roomtable_[c.stime_.first][c.stime_.second]);
+		
+		//3.更新课的课表当中的指向
+		for (auto i = 0; i < c.GetDuration(); i++) {
+			c.ttbptr_->roomtable_[c.stime_.first][c.stime_.second + i] = &c;
+		}
+
+		//4.更新合班课的指针指向
+		for (auto i = 0; i < c.unioncls_.size(); i++) {
+			c.unioncls_[i] = &(clsque_[c.unioclsid_[i]]);
+		}
 	}
 }
 
@@ -116,24 +127,100 @@ void Schedule::SwapClsUnit(ClassUnit& firstcls) {
 	vector<pair<int, int>> canbeput = firstcls.GetRandAvailTime();
 	if (canbeput.empty())return;
 	//0用来装当前的节次组，1用来装将来的节次组
-	vector<vector<ClassUnit*>> wait4swap{ 2 };
-	wait4swap[0].push_back(&firstcls);
-	vector<vector<ClassUnit*>::iterator> it;
+	pair<int, int> tmp;
+	for (auto i = 0; i < canbeput.size(); i++) {
+		//timedelta对于0组来说是要进行相减的，1组的是要进行相加
+		tmp.first = firstcls.stime_.first - canbeput[i].first;
+		tmp.second = firstcls.stime_.second - canbeput[i].second;
+		//表示融合成功并且交换结束
+		if (UnionClsUnits(firstcls, tmp))break;
+	}
+}
+
+bool Schedule::UnionClsUnits(ClassUnit& firstcls, pair<int, int> timedelta) {
+	//准备工作
+	//wait4swap用来装ttb当中的指针，而不是clsunit的地址
+	vector<vector<ClassUnit**>> wait4swap{ 2 };
+	//wait4swap[0].push_back(firstcls.ttbptr_->GetClsUnitPtr(firstcls.stime_.first, firstcls.stime_.second));
+	vector<vector<ClassUnit**>::iterator> it;
 	for (auto i = 0; i < 2; i++) {
 		it.push_back(wait4swap[i].begin());
 	}
-	auto fun = [&]()-> bool{
+	
+	//通过bfs整个队列进行union操作
+	set<ClassUnit**> clstab;
+	if (!AddUnitPtrIntoVec(firstcls.headptr_, timedelta, 0, wait4swap, clstab))return false;
+	//clstab.insert(firstcls.ttbptr_->GetClsUnitPtr(firstcls.stime_.first, firstcls.stime_.second));
+	//lambda
+	auto fun = [&]()-> bool {
 		for (auto i = 0; i < 2; i++) {
 			if (it[i] != wait4swap[i].end())
 				return true;
 		}
 		return false;
 	};
-	set<ClassUnit*> clstab;
+	//用来标示是否成功把某节次的课放入队列当中，如果当中有一个失败则这次就都失败
 	while (fun()) {
 		for (auto i = 0; i < 2; i++) {
-			
+			if (it[i] != wait4swap[i].end()) {
+				if ((*(it[i]) != NULL) && (!AddUnitPtrIntoVec(*(it[i]), timedelta, i, wait4swap, clstab))) {
+					return false;
+				}
+			}
 		}
 	}
 
+	return true;
 }
+
+bool Schedule::AddUnitPtrIntoVec(ClassUnit** cptr, pair<int, int> timedelta,
+	int k, vector<vector<ClassUnit**>>& wait4swap, set<ClassUnit**>& clstab) {
+	//将当前这个节次的课和这个节次对应的课都放到列表当中
+	auto cls = *(*cptr);//cls是这节课
+	//从当前这个节次开始
+	for (auto i = 0; i < cls.GetDuration(); i++) {
+		//当前这个部分
+		if(!PutInSetVec(cptr, timedelta, k, i, wait4swap, clstab))return false;
+		//if(!PutInSetVec(cptr, timedelta, 1 - k, i, wait4swap, clstab))return false;
+	}
+	//再判断这个是否是合班课
+	if (cls.unioclsid_.size()) {
+		for (auto& uc : cls.unioncls_) {
+			if (!PutInSetVec(uc->headptr_, timedelta, k, 0, wait4swap, clstab))return false;
+			//if (!PutInSetVec(uc->headptr_, timedelta, 1 - k, 0, wait4swap, clstab))return false;
+		}
+	}
+	return true;
+}
+
+bool Schedule::PutInSetVec(ClassUnit ** cptr, pair<int, int> timedelta,
+	int k, int add, vector<vector<ClassUnit**>>& wait4swap, set<ClassUnit**>& clstab) {
+	//此函数将需要相互交换的两节课都一起放进去
+	//此部分需要加入检查机制，检查调换区域是否能够被放过去
+	auto cls = *(*cptr);//cls是当前这节课
+	pair<int, int> tmp;
+	if (k)tmp = pair<int, int>(cls.stime_.first + timedelta.first, cls.stime_.second + timedelta.second + add);
+	else tmp = pair<int, int>(cls.stime_.first - timedelta.first, cls.stime_.second - timedelta.second);
+	//target表示需要被交换的那节课
+	auto target = *(cls.ttbptr_->roomtable_[tmp.first][tmp.second]);
+	if (!CanBeSwap(cls, target))return false;
+
+	//c表示要放到vec和set当中的这个节次
+	auto c = &(cls.ttbptr_->roomtable_[cls.stime_.first][cls.stime_.second + add]);
+	auto tp = &(target.ttbptr_->roomtable_[target.stime_.first][target.stime_.second]);
+	if (clstab.find(c) == clstab.end() && clstab.find(tp) == clstab.end()) {
+		clstab.insert(c);
+		clstab.insert(tp);
+		wait4swap[k].push_back(c);
+		wait4swap[1 - k].push_back(tp);
+	}
+	return true;
+}
+
+bool Schedule::CanBeSwap(ClassUnit c, ClassUnit target) {
+	//检查两个将要被放入set和vec当中的两节课能否相互被交换
+	if (!c.CheckPeriod(target.stime_))return false;
+	if (!target.CheckPeriod(c.stime_))return false;
+	return true;
+}
+

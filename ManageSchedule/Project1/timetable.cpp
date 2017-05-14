@@ -60,3 +60,7 @@ void TimeTable::UpdatePtrs() {
 		roomtable_[day][period] = clsque_[i];
 	}
 }
+
+ClassUnit** TimeTable::GetClsUnitPtr(int day, int period) {
+	return &roomtable_[day][period];
+}

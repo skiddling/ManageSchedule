@@ -29,4 +29,13 @@ private:
 	void UpdatePtrs();
 
 	void SwapClsUnit(ClassUnit& firstcls);
+	bool UnionClsUnits(ClassUnit& firstcls, pair<int, int> timedelta);
+
+	bool AddUnitPtrIntoVec(ClassUnit** cptr, pair<int, int> timedelta, 
+		int k, vector<vector<ClassUnit**>>& wait4swap, set<ClassUnit**>& clstab);
+
+	bool PutInSetVec(ClassUnit** cptr, pair<int, int> timedelta, 
+		int k, int add, vector<vector<ClassUnit**>>& wait4swap, set<ClassUnit**>& clstab);
+
+	bool CanBeSwap(ClassUnit c, ClassUnit target);
 };

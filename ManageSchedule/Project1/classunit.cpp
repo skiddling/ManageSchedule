@@ -26,6 +26,7 @@ void ClassUnit::PutIntoTable(int day, int period) {
 	stime_.first = day;
 	stime_.second = period;
 	if (type_ == 1)teacher_->normalappear_[day] = 1;
+	headptr_ = &(ttbptr_->roomtable_[day][period]);
 	for (auto i = 0; i < duration_; i++) {
 		//更新教室信息
 		ttbptr_->roomtable_[day][period + i] = this;
@@ -83,6 +84,11 @@ vector<pair<int, int>> ClassUnit::GetRandAvailTime() {
 	return vec;
 }
 
+bool ClassUnit::CheckPeriod(pair<int, int> per) {
+	if(canntbeput_.find(per) != canntbeput_.end()) return false;
+	return true;
+}
+
 void ClassUnit::GetRandSet(vector<pair<int, int>>& randset) {
 	int id, sz = randset.size();
 	uniform_int_distribution<int> u(0, sz - 1);
@@ -91,3 +97,4 @@ void ClassUnit::GetRandSet(vector<pair<int, int>>& randset) {
 		if (id != i)swap(randset[i], randset[id]);
 	}
 }
+
