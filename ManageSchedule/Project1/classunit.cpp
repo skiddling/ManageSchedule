@@ -89,6 +89,13 @@ bool ClassUnit::CheckPeriod(pair<int, int> per) {
 	return true;
 }
 
+void ClassUnit::ChangeTime(pair<int, int> period) {
+	//把当前这节课的时间换到目标时间当中
+	teacher_->UpdateUnit(this, period);
+	stime_ = period;
+	headptr_ = &(ttbptr_->roomtable_[period.first][period.second]);
+}
+
 void ClassUnit::GetRandSet(vector<pair<int, int>>& randset) {
 	int id, sz = randset.size();
 	uniform_int_distribution<int> u(0, sz - 1);

@@ -80,26 +80,6 @@ void Schedule::CalFitness() {
 		crash_ += c.CalFitness();
 }
 
-void Schedule::Cross() {
-	/*
-	这里比modify少判断教师上课情况，
-	也就是这里只判断该节课自己的能否被安排的情况，
-	*/
-	double cp;
-	uniform_real_distribution<double> u(0.0, 1.0);
-	for (auto& c : clsque_) {
-		cp = u(e_);
-		if (cp < mxpocross_) {
-			SwapClsUnit(c);
-		}
-	}
-
-}
-
-void Schedule::Modify() {
-
-}
-
 void Schedule::UpdatePtrs() {
 	for (auto& c : clsque_) {
 		//1.先将老师和自己的每节课进行挂钩
@@ -123,6 +103,63 @@ void Schedule::UpdatePtrs() {
 	}
 }
 
+void Schedule::Modify() {
+	//先判冲突再解决冲突
+	for (auto& c : clsque_) {
+		if ((!c.CheckPeriod(c.stime_)) || (!c.teacher_->CheckUnit(&c))) {
+			//发现需要进行调换	
+			NeedToSwap(c);
+		}
+	}
+
+}
+
+void Schedule::NeedToSwap(ClassUnit& firstcls) {
+	//这节课需要被进行调换
+	//先获得可用时间的交集
+	vector<pair<int, int>> canbeput = firstcls.GetRandAvailTime();
+	set<pair<int, int>> teavper = firstcls.teacher_->GetAvailPeriods();
+	vector<int> normaleappear = firstcls.teacher_->normalappear_;
+	for (auto it = canbeput.begin(); it != canbeput.end();) {
+		if (!firstcls.GetType()) {
+			if(!normaleappear[it->first])
+				it = canbeput.erase(it);
+		}
+		if (teavper.find(*it) == teavper.end()) {
+			it = canbeput.erase(it);
+		}
+		else it++;
+	}
+	//剩下的时间段就是可以进行调换的	
+	pair<int, int> tmp;
+	for (auto i = 0; i < canbeput.size(); i++) {
+		//timedelta对于0组来说是要进行相减的，1组的是要进行相加
+		tmp.first = firstcls.stime_.first - canbeput[i].first;
+		tmp.second = firstcls.stime_.second - canbeput[i].second;
+		//表示融合成功并且交换结束
+		if (UnionClsUnits(firstcls, tmp)) {
+			//表示已经成功放入wait4swap当中，然后准备相互之间的交换
+			break;
+		}
+	}	
+}
+
+void Schedule::Cross() {
+	/*
+	这里比modify少判断教师上课情况，
+	也就是这里只判断该节课自己的能否被安排的情况，
+	*/
+	double cp;
+	uniform_real_distribution<double> u(0.0, 1.0);
+	for (auto& c : clsque_) {
+		cp = u(e_);
+		if (cp < mxpocross_) {
+			SwapClsUnit(c);
+		}
+	}
+
+}
+
 void Schedule::SwapClsUnit(ClassUnit& firstcls) {
 	vector<pair<int, int>> canbeput = firstcls.GetRandAvailTime();
 	if (canbeput.empty())return;
@@ -133,7 +170,10 @@ void Schedule::SwapClsUnit(ClassUnit& firstcls) {
 		tmp.first = firstcls.stime_.first - canbeput[i].first;
 		tmp.second = firstcls.stime_.second - canbeput[i].second;
 		//表示融合成功并且交换结束
-		if (UnionClsUnits(firstcls, tmp))break;
+		if (UnionClsUnits(firstcls, tmp)) {
+			//表示已经成功放入wait4swap当中，然后准备相互之间的交换
+			break;
+		}
 	}
 }
 
@@ -166,10 +206,11 @@ bool Schedule::UnionClsUnits(ClassUnit& firstcls, pair<int, int> timedelta) {
 				if ((*(it[i]) != NULL) && (!AddUnitPtrIntoVec(*(it[i]), timedelta, i, wait4swap, clstab))) {
 					return false;
 				}
+				it[i]++;
 			}
 		}
 	}
-
+	SwapUnitsInVec(wait4swap);
 	return true;
 }
 
@@ -199,8 +240,9 @@ bool Schedule::PutInSetVec(ClassUnit ** cptr, pair<int, int> timedelta,
 	//此部分需要加入检查机制，检查调换区域是否能够被放过去
 	auto cls = *(*cptr);//cls是当前这节课
 	pair<int, int> tmp;
+	//这里的tmp表示将要被调过去的时间
 	if (k)tmp = pair<int, int>(cls.stime_.first + timedelta.first, cls.stime_.second + timedelta.second + add);
-	else tmp = pair<int, int>(cls.stime_.first - timedelta.first, cls.stime_.second - timedelta.second);
+	else tmp = pair<int, int>(cls.stime_.first - timedelta.first, cls.stime_.second - timedelta.second + add);
 	//target表示需要被交换的那节课
 	auto target = *(cls.ttbptr_->roomtable_[tmp.first][tmp.second]);
 	if (!CanBeSwap(cls, target))return false;
@@ -222,5 +264,17 @@ bool Schedule::CanBeSwap(ClassUnit c, ClassUnit target) {
 	if (!c.CheckPeriod(target.stime_))return false;
 	if (!target.CheckPeriod(c.stime_))return false;
 	return true;
+}
+
+void Schedule::SwapUnitsInVec(vector<vector<ClassUnit**>>& wait4swap) {
+	//把队列当中的节次都进行相互交换
+	for (auto i = 0; i < wait4swap.size(); i++) {
+		auto origin = *(wait4swap[0][i]);
+		auto target = *(wait4swap[1][i]);
+		if(origin->headptr_ == wait4swap[0][i])
+			origin->ttbptr_->SwapUnits(origin, target);
+		*(wait4swap[0][i]) = &(*target);
+		*(wait4swap[1][i]) = &(*origin);
+	}
 }
 

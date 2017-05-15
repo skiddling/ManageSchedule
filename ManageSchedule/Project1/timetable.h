@@ -19,6 +19,8 @@ public:
 	void Init();
 	void UpdatePtrs();
 	ClassUnit** GetClsUnitPtr(int day, int period);
+
+	void SwapUnits(ClassUnit* origin, ClassUnit* target);
 private:
 	
 

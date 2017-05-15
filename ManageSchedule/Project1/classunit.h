@@ -35,6 +35,7 @@ public:
 	int GetTimeTableIdInVec();
 	vector<pair<int, int>> GetRandAvailTime();
 	bool CheckPeriod(pair<int, int> per);
+	void ChangeTime(pair<int, int> period);
 
 private:
 	default_random_engine e_;

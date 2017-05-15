@@ -64,3 +64,10 @@ void TimeTable::UpdatePtrs() {
 ClassUnit** TimeTable::GetClsUnitPtr(int day, int period) {
 	return &roomtable_[day][period];
 }
+
+void TimeTable::SwapUnits(ClassUnit * origin, ClassUnit * target) {
+	//交换这两个课
+	//先更新roomtable当中的内容
+	origin->ChangeTime(target->stime_);
+	target->ChangeTime(origin->stime_);
+}

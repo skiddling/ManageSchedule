@@ -38,4 +38,6 @@ private:
 		int k, int add, vector<vector<ClassUnit**>>& wait4swap, set<ClassUnit**>& clstab);
 
 	bool CanBeSwap(ClassUnit c, ClassUnit target);
+	void SwapUnitsInVec(vector<vector<ClassUnit**>>& wait4swap);
+	void NeedToSwap(ClassUnit& firstcls);
 };
