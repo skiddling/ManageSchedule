@@ -68,6 +68,7 @@ ClassUnit** TimeTable::GetClsUnitPtr(int day, int period) {
 void TimeTable::SwapUnits(ClassUnit * origin, ClassUnit * target) {
 	//交换这两个课
 	//先更新roomtable当中的内容
-	origin->ChangeTime(target->stime_);
-	target->ChangeTime(origin->stime_);
+	//存在空指针的情况
+	if(origin != NULL)origin->ChangeTime(target->stime_);
+	if(target != NULL)target->ChangeTime(origin->stime_);
 }

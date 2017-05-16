@@ -1,5 +1,6 @@
 #include "teacher.h"
 #include "classunit.h"
+#include "timetable.h"
 
 int Teacher::GetClsNumInPeriod(pair<int, int> period) {
 	return clsinperiod_[period];
@@ -18,11 +19,32 @@ void Teacher::AddClsInPeriod(int day, int period) {
 	else clsinperiod_[tmp]++;
 }
 
-bool Teacher::CheckUnit(ClassUnit * cls) {
-	auto period = cls->stime_;
+bool Teacher::CheckUnit(ClassUnit * cls, pair<int, int> period) {
+	//auto period = cls->stime_;
+	//根据节次的类型
 	if (!cls->GetType()) {
+		//辅助节次没有和主要节次放同一天
 		if (!normalappear_[period.first])return false;
+		//辅助节次和主要节次连在了一起
+		auto day = period.first;
+		auto before = period.second - 1;
+		if (before > 0) {
+			auto tea = (*(cls->ttbptr_->roomtable_[day][before])).teacher_;
+			if(*tea == *(cls->teacher_))
+				return false;
+		}
+		auto after = period.second + 1;
+		if (after < cls->ttbptr_->periods_ - 1) {
+			auto tea = (*(cls->ttbptr_->roomtable_[day][after])).teacher_;
+			if(*tea == *(cls->teacher_))
+				return false;
+		}
 	}
+	else {
+		//有两个主要节次放在同一天
+		if (normalappear_[period.first] > 1)return false;
+	}
+	//检查老师是否同一个时间段上两节课
 	for (auto i = 0; i < cls->GetDuration(); i++) {
 		if (clsinperiod_.find(period) != clsinperiod_.end()) {
 			if (clsinperiod_[period] > 1)return false;
@@ -47,4 +69,8 @@ void Teacher::UpdateUnit(ClassUnit* cls, pair<int, int> target) {
 		availperiods_.erase(availperiods_.find(target));
 	}
 	else clsinperiod_[target]++;
+}
+
+set<pair<int, int>> Teacher::GetAvailPeriods() {
+	return availperiods_;
 }

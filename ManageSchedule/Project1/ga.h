@@ -6,9 +6,12 @@
 class GA
 {
 public:
-	GA();
 	Schedule res_;
 	int outtime_;//运行时限
+
+	GA();
+	void GenerateTable();
+	void OutPutRes();
 
 private:
 	int num_of_threads_;
@@ -20,6 +23,5 @@ private:
 	vector<Course> courses_;
 
 	void InitSchedules();
-	void GenerateTable();
 	void GetSchedule(int thid, InterruptibleThread* t, future<Schedule>* fut);
 };

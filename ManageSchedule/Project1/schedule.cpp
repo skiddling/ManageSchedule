@@ -106,7 +106,7 @@ void Schedule::UpdatePtrs() {
 void Schedule::Modify() {
 	//先判冲突再解决冲突
 	for (auto& c : clsque_) {
-		if ((!c.CheckPeriod(c.stime_)) || (!c.teacher_->CheckUnit(&c))) {
+		if ((!c.CheckPeriod(c.stime_)) || (!c.teacher_->CheckUnit(&c, c.stime_))) {
 			//发现需要进行调换	
 			NeedToSwap(c);
 		}
@@ -137,7 +137,7 @@ void Schedule::NeedToSwap(ClassUnit& firstcls) {
 		tmp.first = firstcls.stime_.first - canbeput[i].first;
 		tmp.second = firstcls.stime_.second - canbeput[i].second;
 		//表示融合成功并且交换结束
-		if (UnionClsUnits(firstcls, tmp)) {
+		if (UnionClsUnits(true, firstcls, tmp)) {
 			//表示已经成功放入wait4swap当中，然后准备相互之间的交换
 			break;
 		}
@@ -170,14 +170,14 @@ void Schedule::SwapClsUnit(ClassUnit& firstcls) {
 		tmp.first = firstcls.stime_.first - canbeput[i].first;
 		tmp.second = firstcls.stime_.second - canbeput[i].second;
 		//表示融合成功并且交换结束
-		if (UnionClsUnits(firstcls, tmp)) {
+		if (UnionClsUnits(false, firstcls, tmp)) {
 			//表示已经成功放入wait4swap当中，然后准备相互之间的交换
 			break;
 		}
 	}
 }
 
-bool Schedule::UnionClsUnits(ClassUnit& firstcls, pair<int, int> timedelta) {
+bool Schedule::UnionClsUnits(bool flag, ClassUnit& firstcls, pair<int, int> timedelta) {
 	//准备工作
 	//wait4swap用来装ttb当中的指针，而不是clsunit的地址
 	vector<vector<ClassUnit**>> wait4swap{ 2 };
@@ -189,7 +189,7 @@ bool Schedule::UnionClsUnits(ClassUnit& firstcls, pair<int, int> timedelta) {
 	
 	//通过bfs整个队列进行union操作
 	set<ClassUnit**> clstab;
-	if (!AddUnitPtrIntoVec(firstcls.headptr_, timedelta, 0, wait4swap, clstab))return false;
+	if (!AddUnitPtrIntoVec(flag, firstcls.headptr_, timedelta, 0, wait4swap, clstab))return false;
 	//clstab.insert(firstcls.ttbptr_->GetClsUnitPtr(firstcls.stime_.first, firstcls.stime_.second));
 	//lambda
 	auto fun = [&]()-> bool {
@@ -203,7 +203,7 @@ bool Schedule::UnionClsUnits(ClassUnit& firstcls, pair<int, int> timedelta) {
 	while (fun()) {
 		for (auto i = 0; i < 2; i++) {
 			if (it[i] != wait4swap[i].end()) {
-				if ((*(it[i]) != NULL) && (!AddUnitPtrIntoVec(*(it[i]), timedelta, i, wait4swap, clstab))) {
+				if ((*(it[i]) != NULL) && (!AddUnitPtrIntoVec(flag, *(it[i]), timedelta, i, wait4swap, clstab))) {
 					return false;
 				}
 				it[i]++;
@@ -214,43 +214,46 @@ bool Schedule::UnionClsUnits(ClassUnit& firstcls, pair<int, int> timedelta) {
 	return true;
 }
 
-bool Schedule::AddUnitPtrIntoVec(ClassUnit** cptr, pair<int, int> timedelta,
+bool Schedule::AddUnitPtrIntoVec(bool flag, ClassUnit** cptr, pair<int, int> timedelta,
 	int k, vector<vector<ClassUnit**>>& wait4swap, set<ClassUnit**>& clstab) {
 	//将当前这个节次的课和这个节次对应的课都放到列表当中
 	auto cls = *(*cptr);//cls是这节课
 	//从当前这个节次开始
 	for (auto i = 0; i < cls.GetDuration(); i++) {
 		//当前这个部分
-		if(!PutInSetVec(cptr, timedelta, k, i, wait4swap, clstab))return false;
+		if(!PutInSetVec(flag, cptr, timedelta, k, i, wait4swap, clstab))return false;
 		//if(!PutInSetVec(cptr, timedelta, 1 - k, i, wait4swap, clstab))return false;
 	}
 	//再判断这个是否是合班课
 	if (cls.unioclsid_.size()) {
 		for (auto& uc : cls.unioncls_) {
-			if (!PutInSetVec(uc->headptr_, timedelta, k, 0, wait4swap, clstab))return false;
+			if (!PutInSetVec(flag, uc->headptr_, timedelta, k, 0, wait4swap, clstab))return false;
 			//if (!PutInSetVec(uc->headptr_, timedelta, 1 - k, 0, wait4swap, clstab))return false;
 		}
 	}
 	return true;
 }
 
-bool Schedule::PutInSetVec(ClassUnit ** cptr, pair<int, int> timedelta,
+bool Schedule::PutInSetVec(bool flag, ClassUnit ** cptr, pair<int, int> timedelta,
 	int k, int add, vector<vector<ClassUnit**>>& wait4swap, set<ClassUnit**>& clstab) {
 	//此函数将需要相互交换的两节课都一起放进去
 	//此部分需要加入检查机制，检查调换区域是否能够被放过去
-	auto cls = *(*cptr);//cls是当前这节课
+	//都改正指针版本
+	auto cls = *cptr;//cls是当前这节课
 	pair<int, int> tmp;
 	//这里的tmp表示将要被调过去的时间
-	if (k)tmp = pair<int, int>(cls.stime_.first + timedelta.first, cls.stime_.second + timedelta.second + add);
-	else tmp = pair<int, int>(cls.stime_.first - timedelta.first, cls.stime_.second - timedelta.second + add);
-	//target表示需要被交换的那节课
-	auto target = *(cls.ttbptr_->roomtable_[tmp.first][tmp.second]);
-	if (!CanBeSwap(cls, target))return false;
+	if (k)tmp = pair<int, int>(cls->stime_.first + timedelta.first, cls->stime_.second + timedelta.second + add);
+	else tmp = pair<int, int>(cls->stime_.first - timedelta.first, cls->stime_.second - timedelta.second + add);
+	//target表示需要被交换的那节课，可能是空指针
+	auto target = cls->ttbptr_->roomtable_[tmp.first][tmp.second];
+	pair<int, int> cperiod{ cls->stime_.first, cls->stime_.second + add };
+	if (!CanBeSwap(flag, cls, cperiod, target, tmp))return false;
 
 	//c表示要放到vec和set当中的这个节次
-	auto c = &(cls.ttbptr_->roomtable_[cls.stime_.first][cls.stime_.second + add]);
-	auto tp = &(target.ttbptr_->roomtable_[target.stime_.first][target.stime_.second]);
-	if (clstab.find(c) == clstab.end() && clstab.find(tp) == clstab.end()) {
+	auto c = &(cls->ttbptr_->roomtable_[cls->stime_.first][cls->stime_.second + add]);
+	//target可能是个空指针
+	auto tp = &(cls->ttbptr_->roomtable_[tmp.first][tmp.second]);
+	if (clstab.find(c) == clstab.end()) {
 		clstab.insert(c);
 		clstab.insert(tp);
 		wait4swap[k].push_back(c);
@@ -259,22 +262,30 @@ bool Schedule::PutInSetVec(ClassUnit ** cptr, pair<int, int> timedelta,
 	return true;
 }
 
-bool Schedule::CanBeSwap(ClassUnit c, ClassUnit target) {
+bool Schedule::CanBeSwap(bool flag, ClassUnit* c, pair<int, int> cperiod, ClassUnit* target, pair<int, int> tperiod) {
 	//检查两个将要被放入set和vec当中的两节课能否相互被交换
-	if (!c.CheckPeriod(target.stime_))return false;
-	if (!target.CheckPeriod(c.stime_))return false;
+	if (!c->CheckPeriod(tperiod))return false;
+	if (flag && !c->teacher_->CheckUnit(c, tperiod))return false;
+	if (target != NULL && !(target->CheckPeriod(cperiod)))return false;
+	if (flag && target != NULL && !(target->teacher_->CheckUnit(target, cperiod)))return false;
 	return true;
 }
 
 void Schedule::SwapUnitsInVec(vector<vector<ClassUnit**>>& wait4swap) {
 	//把队列当中的节次都进行相互交换
+	//注意当中存在空指针的情况
 	for (auto i = 0; i < wait4swap.size(); i++) {
 		auto origin = *(wait4swap[0][i]);
 		auto target = *(wait4swap[1][i]);
-		if(origin->headptr_ == wait4swap[0][i])
+		if(origin !=NULL && origin->headptr_ == wait4swap[0][i])
 			origin->ttbptr_->SwapUnits(origin, target);
-		*(wait4swap[0][i]) = &(*target);
-		*(wait4swap[1][i]) = &(*origin);
+		else if(target !=NULL && target->headptr_ == wait4swap[1][i])
+			target->ttbptr_->SwapUnits(origin, target);
+		//存在空指针
+		if(target != NULL)*(wait4swap[0][i]) = &(*target);
+		else *(wait4swap[0][i]) = NULL;
+		if(origin != NULL)*(wait4swap[1][i]) = &(*origin);
+		else *(wait4swap[1][i]) = NULL;
 	}
 }
 

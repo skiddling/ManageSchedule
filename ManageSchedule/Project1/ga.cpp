@@ -26,6 +26,42 @@ void GA::GenerateTable() {
 	for (auto i = 0; i < num_of_threads_; i++) {
 		threads[i] = InterruptibleThread(this, &GA::GetSchedule, i, &pro, &fut);
 	}
+
+	if (fut.wait_for(dur) == future_status::ready) {
+		res_ = fut.get();
+		for (auto& t : threads) {
+			t.interrupt();
+			t.join();
+		}
+	}
+	else {
+		for (auto& t : threads) {
+			t.interrupt();
+			t.join();
+		}
+		res_ = schedules_[0];
+		for (auto i = 1; i < num_of_threads_ * thread_schedule_size_; i++) {
+			if (res_.crash_ > schedules_[i].crash_) {
+				res_ = schedules_[i];
+			}
+		}
+	}
+}
+
+void GA::OutPutRes() {
+	ofstream fout("result.txt");
+	for (auto& t : res_.timetables_) {
+		for (auto i = 0; i < t.roomtable_.size(); i++) {
+			for (auto j = 0; j < t.roomtable_[i].size(); j++) {
+				if (t.roomtable_[i][j] != NULL) {
+					fout << t.roomtable_[i][j]->teacher_ << "  " << t.roomtable_[i][j]->GetCouName() << "         ";
+				}
+			}
+			cout << endl;
+		}
+		cout << endl << endl;
+	}
+	fout.close();
 }
 
 void GA::GetSchedule(int thid, InterruptibleThread* t, future<Schedule>* fut) {

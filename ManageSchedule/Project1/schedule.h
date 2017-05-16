@@ -29,15 +29,18 @@ private:
 	void UpdatePtrs();
 
 	void SwapClsUnit(ClassUnit& firstcls);
-	bool UnionClsUnits(ClassUnit& firstcls, pair<int, int> timedelta);
+	//flag = 1表示是在modify当中使用，0表示只是在cross当中使用
+	bool UnionClsUnits(bool flag, ClassUnit& firstcls, pair<int, int> timedelta);
 
-	bool AddUnitPtrIntoVec(ClassUnit** cptr, pair<int, int> timedelta, 
+	//flag = 1表示是在modify当中使用，0表示只是在cross当中使用
+	bool AddUnitPtrIntoVec(bool flag, ClassUnit** cptr, pair<int, int> timedelta, 
 		int k, vector<vector<ClassUnit**>>& wait4swap, set<ClassUnit**>& clstab);
 
-	bool PutInSetVec(ClassUnit** cptr, pair<int, int> timedelta, 
+	//flag = 1表示是在modify当中使用，0表示只是在cross当中使用
+	bool PutInSetVec(bool flag, ClassUnit** cptr, pair<int, int> timedelta, 
 		int k, int add, vector<vector<ClassUnit**>>& wait4swap, set<ClassUnit**>& clstab);
 
-	bool CanBeSwap(ClassUnit c, ClassUnit target);
+	bool CanBeSwap(bool flag, ClassUnit* c, pair<int, int> cperiod, ClassUnit* target, pair<int, int> tperiod);
 	void SwapUnitsInVec(vector<vector<ClassUnit**>>& wait4swap);
 	void NeedToSwap(ClassUnit& firstcls);
 };
