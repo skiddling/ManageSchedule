@@ -13,6 +13,7 @@ void GA::InitSchedules() {
 	//step 1. init schedule res
 	//每个schedule不能进行拷贝，只能通过独立的初始化产生
 	res_.teachers_ = teachers_;
+	res_.clsque_ = units_;
 	res_.init();
 }
 

@@ -1,11 +1,18 @@
 #pragma once
 #include "ga.h"
 
+#import "C:\Program Files\Common Files\System\ado\msado15.dll"  no_namespace rename("EOF", "adoEOF")
+
 class Dbutils
 {
 public:
 	void GetDBData(char* argv[], map<string, int> &teachersmap, map<string, int> &coursesmap, vector<Teacher> &teachers, vector<Course> &courses, vector<TimeTable> &timetables);
 	void OutPutPKTeaching(Schedule res);
+	
+	//DButil();
+	string StartPk(string pktaskid);
+	string StartPk();
+	void OutPutResult();
 
 private:
 	string db_server_;

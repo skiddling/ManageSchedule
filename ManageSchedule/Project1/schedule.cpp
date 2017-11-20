@@ -70,6 +70,10 @@ void Schedule::init() {
 	//2.然后安排每节课的时间
 	for (auto& t : timetables_)
 		t.Init();
+	//3.更新headptr
+	for (auto &c : clsque_) {
+		c.headptr_ = &(c.ttbptr_->roomtable_[c.stime_.first][c.stime_.second]);
+	}
 }
 
 void Schedule::CalFitness() {
@@ -89,7 +93,8 @@ void Schedule::UpdatePtrs() {
 		//2.把这个课和相应的上课教室挂钩
 		timetables_[c.GetTimeTableIdInVec()].clsque_.push_back(&c);
 		c.ttbptr_ = &timetables_[c.GetTimeTableIdInVec()];
-		c.headptr_ = &(c.ttbptr_->roomtable_[c.stime_.first][c.stime_.second]);
+		//这个headptr需要等到init之后才能确定下来
+		//c.headptr_ = &(c.ttbptr_->roomtable_[c.stime_.first][c.stime_.second]);
 		
 		//3.更新课的课表当中的指向
 		for (auto i = 0; i < c.GetDuration(); i++) {
