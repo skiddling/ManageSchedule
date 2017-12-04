@@ -2,6 +2,10 @@
 #include "classunit.h"
 #include "timetable.h"
 
+Teacher::Teacher(string dbname, long long pkcourse_id, long long dbteacher_id, long long dbid):
+	dbname_(dbname), pkcourse_id_(pkcourse_id), dbteacher_id_(dbteacher_id), dbid_(dbid){
+}
+
 int Teacher::GetClsNumInPeriod(pair<int, int> period) {
 	return clsinperiod_[period];
 }

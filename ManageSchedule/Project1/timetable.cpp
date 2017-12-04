@@ -9,6 +9,10 @@ void TimeTable::CalFitness(int& crash) {
 	}
 }
 
+TimeTable::TimeTable(string roomname, int days, int periods, long long class_id, long long dbid) :
+	roomname_(roomname), days_(days), periods_(periods), class_id_(class_id), dbid_(dbid){
+}
+
 TimeTable::TimeTable(const TimeTable & t):
 	clsque_(t.clsque_), days_(t.days_), periods_(t.periods_),
 	roomid_(t.roomid_), roomname_(t.roomname_), roomtable_(t.roomtable_){

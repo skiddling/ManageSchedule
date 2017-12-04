@@ -1,6 +1,11 @@
 #include "ClassUnit.h"
 #include "timetable.h"
 
+ClassUnit::ClassUnit(TimeTable* ttb, Teacher * teacher, Course course):
+	ttbptr_(ttb), teacher_(teacher), course_(course){
+	e_ = default_random_engine(time(NULL));
+}
+
 ClassUnit::ClassUnit() {
 	e_ = default_random_engine(time(NULL));
 }

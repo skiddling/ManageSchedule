@@ -4,6 +4,14 @@
 class Teacher
 {
 public:
+	//data from database
+	string dbname_;//教师名字
+	long long pkcourse_id_;
+	long long dbteacher_id_;
+	long long dbid_;//数据库当中用来唯一区分老师的id
+
+	Teacher(string dbname, long long pkcourse_id, long long dbteacher_id, long long dbid);
+
 	int teacherid_;
 	int idinque_;//在schedule的teachers当中的序号
 	vector<Course> couque_;//教学的科目
