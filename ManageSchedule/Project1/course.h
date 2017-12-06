@@ -29,7 +29,7 @@ public:
 	int dbid_;//数据库当中这个课程的id
 	string dbjname_;//数据库当中这个课程的简称
 	string course_name_;
-	vector<ClassUnit*> clsque_;//所有这门课下的所有的具体的教学班
+	vector<int> clsque_;//所有这门课下的所有的具体的教学班，所有的都对应同一个schedule当中的节次
 
 	Course();
 	Course(string cname);

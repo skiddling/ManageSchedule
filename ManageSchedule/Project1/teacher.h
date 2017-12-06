@@ -15,7 +15,7 @@ public:
 	int teacherid_;
 	int idinque_;//在schedule的teachers当中的序号
 	vector<Course> couque_;//教学的科目
-	vector<ClassUnit*> clsque_;//属于这个老师所有的课的队列
+	vector<int> clsque_;//属于这个老师所有的课的队列，所有的下标都来自于同一个schedule当中的所有的节次表
 	map<TimeTable, vector<ClassUnit*>> clstabque_;//这个老师的所有上的课
 	Teacher();
 	vector<vector<int>> unitstimecount_;//节次时间的计数

@@ -24,7 +24,7 @@ public:
 	int type_;//这节课的类型，1表示普通，0表示辅助，2表示是普通类型的连堂课，但是辅助类型不能和他一起在同一天出现
 	int duration_;//课时长度
 
-	vector<ClassUnit*> unioncls_;//合班课程
+	vector<int> unioncls_;//合班课程，数值都是指向同一个schedule当中的下标
 	vector<int> unioclsid_;//合班课程id
 	pair<int, int> headunit_;
 

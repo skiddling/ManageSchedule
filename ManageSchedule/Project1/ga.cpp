@@ -9,6 +9,10 @@ GA::GA() {
 	schedules_ = vector<Schedule>(num_of_threads_ * thread_schedule_size_, res_);
 }
 
+GA::GA(vector<Course> courses, vector<Teacher> teachers, vector<TimeTable> timetables, vector<ClassUnit> units, unordered_set<int> deletedunits):
+	courses_(courses), teachers_(teachers), timetables_(timetables), units_(units), deletedunits_(deletedunits){
+}
+
 void GA::InitSchedules() {
 	//step 1. init schedule res
 	//每个schedule不能进行拷贝，只能通过独立的初始化产生

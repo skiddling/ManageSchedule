@@ -38,23 +38,26 @@ public:
 	map<long long, int> roominque_;//数据库id和相应的队列当中的映射
 
 	//教学班映射表，也就是教学班的id对应具体哪几节课
-	map<long long, vector<ClassUnit*>> class_course_units_;
+	map<long long, vector<int>>class_course_units_;
 
 	//具体课程和相应的教室映射表，哪个课程在哪个教室上课
 	map<long long, int> cou_room_tab_;
 
-	//通过班级，科目，老师，节次序号来找到相应的某一个节课
-	map<long long, map<int, ClassUnit*>> unitstab_;
+	//通过具体教学班，具体节次序号来找到相应的某一个节课
+	map<long long, map<int, int>> unitstab_;
 
 	//合班的组号
-	map<long long, vector<ClassUnit*>> unionclstab_;
+	map<long long, vector<int>> unionclstab_;
 	
 	//连堂课的组号，需要通过这部分来进行数据库当中的数据和算法当中一次课的数据的统一
-	map<long long, vector<ClassUnit*>> continues_cls_tab_;
+	map<long long, vector<int>> continues_cls_tab_;
 	
 	//被删除的节次的记录表
 	//set<long long> deleted_units_set_;
-	unordered_set<ClassUnit*> deleted_units_set_;
+	unordered_set<int> deleted_units_set_;
+
+	//具体节次的队列
+	vector<ClassUnit> clsque_;
 	
 private:
 	string db_server_;

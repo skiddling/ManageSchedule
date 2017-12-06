@@ -216,11 +216,13 @@ void Dbutils::Get_T_PKClassCourse(_RecordsetPtr & m_pRecordset) {
 		//4.把这个具体的节次和这个具体的教学班，一个教学班对应多个节次
 		//5.把这个具体的节次和这个具体的科目联系起来
 		for (auto i = 0; i < lessonnum; i++) {
-			auto clsptr = new ClassUnit(&roomque_[roominque_[pkclass]], &teaque_[teainque_[pkteacher]], couque_[couinque_[pkcourse]]);
+			clsque_.push_back(ClassUnit(&roomque_[roominque_[pkclass]], &teaque_[teainque_[pkteacher]], couque_[couinque_[pkcourse]]));
+			//auto clsptr = new ClassUnit(&roomque_[roominque_[pkclass]], &teaque_[teainque_[pkteacher]], couque_[couinque_[pkcourse]]);
 			//因为数据库是以一节课为单位，而算法当中是以一次课为单位，所以当前产生的需要在最后进行更新
-
 			//设置当前这节课的序号，接下来在设置这节课的一些信息的时候要用到
-			clsptr->secionno_ = i + 1;
+			auto clsptr = clsque_.size() - 1;
+			//clsptr->secionno_ = i + 1;
+			clsque_[clsptr].secionno_ = i + 1;
 			//unitstab_[pkclass][pkcourse][pkteacher][i + 1] = clsptr;
 			unitstab_[id][i + 1] = clsptr;
 			//具体这个班的这个课对应哪几节课
@@ -230,10 +232,10 @@ void Dbutils::Get_T_PKClassCourse(_RecordsetPtr & m_pRecordset) {
 			teaque_[teainque_[pkteacher]].clsque_.push_back(clsptr);
 			couque_[couinque_[pkcourse]].clsque_.push_back(clsptr);
 			//设置课程当中的指向关系	
-			clsptr->ttbptr_ = &roomque_[roominque_[pkclass]];
-			clsptr->teacher_ = &teaque_[teainque_[pkteacher]];
-			clsptr->couptr_ = &couque_[couinque_[pkcourse]];
-			clsptr->type_ = 1;
+			clsque_[clsptr].ttbptr_ = &roomque_[roominque_[pkclass]];
+			clsque_[clsptr].teacher_ = &teaque_[teainque_[pkteacher]];
+			clsque_[clsptr].couptr_ = &couque_[couinque_[pkcourse]];
+			clsque_[clsptr].type_ = 1;
 		}
 	}
 }
@@ -243,7 +245,7 @@ void Dbutils::Get_T_PKClassCourseOrgSectionSet(_RecordsetPtr & m_pRecordset) {
 	long long pkclasscourse, pkcombinateclassgroup, pkcombinateclassgroup, pkevensection;
 	long long pkteacher, pkcourse;
 	int secionno, sfevensection, sfpre, section, sectionperweek, sfcombinate;
-	ClassUnit *cptr;
+	int cptr;
 	m_pRecordset->MoveFirst();
 	while (!m_pRecordset->adoEOF) {
 		pkclasscourse = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkClassCourse")));
@@ -255,8 +257,8 @@ void Dbutils::Get_T_PKClassCourseOrgSectionSet(_RecordsetPtr & m_pRecordset) {
 		if(sfevensection){
 			//连堂设置	
 			pkevensection = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkEvenSection")));
-			unitstab_[pkclasscourse][secionno]->pkevensection_ = pkevensection;
-			unitstab_[pkclasscourse][secionno]->type_ = 2;//表示这个是个连堂课
+			clsque_[unitstab_[pkclasscourse][secionno]].pkevensection_ = pkevensection;
+			clsque_[unitstab_[pkclasscourse][secionno]].type_ = 2;//表示这个是个连堂课
 			cptr = unitstab_[pkclasscourse][secionno];
 			continues_cls_tab_[pkevensection].push_back(cptr);
 		}
@@ -269,17 +271,17 @@ void Dbutils::Get_T_PKClassCourseOrgSectionSet(_RecordsetPtr & m_pRecordset) {
 			//这节课已经被预排了
 			section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section")));
 			sectionperweek = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("sectionPerWeek")));
-			unitstab_[pkclasscourse][secionno]->hasbeenput_ = true;
-			unitstab_[pkclasscourse][secionno]->stime_ = make_pair(sectionperweek - 1, section - 1);
+			clsque_[unitstab_[pkclasscourse][secionno]].hasbeenput_ = true;
+			clsque_[unitstab_[pkclasscourse][secionno]].stime_ = make_pair(sectionperweek - 1, section - 1);
 		}
 		else if (sfcombinate) {
 			//已经合班了，这里合班和连堂认为是不能同时发生的条件
 			pkcombinateclassgroup = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkCombinateClassGroup")));
-			unitstab_[pkclasscourse][secionno]->pkcombinateclassgroup_ = pkcombinateclassgroup;
+			clsque_[unitstab_[pkclasscourse][secionno]].pkcombinateclassgroup_ = pkcombinateclassgroup;
 			unionclstab_[pkcombinateclassgroup].push_back(unitstab_[pkclasscourse][secionno]);
 		}
 		else {
-			unitstab_[pkclasscourse][secionno]->type_ = 1;//表示这个是一个普通的课程
+			clsque_[unitstab_[pkclasscourse][secionno]].type_ = 1;//表示这个是一个普通的课程
 		}
 	}
 }
@@ -296,8 +298,8 @@ void Dbutils::Get_T_PKClassCourseNonSection(_RecordsetPtr & m_pRecordset) {
 		section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section")));
 		for (auto c : class_course_units_[pkclasscourse]) {
 			tmp = make_pair(weekday - 1, section - 1);
-			if (c->canbeput_.find(tmp) == c->canbeput_.end())
-				c->canbeput_.insert(tmp);
+			if (clsque_[c].canbeput_.find(tmp) == clsque_[c].canbeput_.end())
+				clsque_[c].canbeput_.insert(tmp);
 		}
 	}
 }
@@ -314,8 +316,8 @@ void Dbutils::Get_T_PKClassNonSection(_RecordsetPtr & m_pRecordset) {
 		section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section")));
 		for (auto c : roomque_[roominque_[pkclass]].clsque_) {
 			tmp = make_pair(weekday - 1, section - 1);
-			if (c->canbeput_.find(tmp) == c->canbeput_.end())
-				c->canbeput_.insert(tmp);
+			if (clsque_[c].canbeput_.find(tmp) == clsque_[c].canbeput_.end())
+				clsque_[c].canbeput_.insert(tmp);
 		}
 	}
 }
@@ -332,8 +334,8 @@ void Dbutils::Get_T_PKTeacherNonSection(_RecordsetPtr & m_pRecordset) {
 		section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section")));
 		for (auto c : teaque_[teainque_[pkteacher]].clsque_) {
 			tmp = make_pair(weekday - 1, section - 1);
-			if (c->canbeput_.find(tmp) == c->canbeput_.end())
-				c->canbeput_.insert(tmp);
+			if (clsque_[c].canbeput_.find(tmp) == clsque_[c].canbeput_.end())
+				clsque_[c].canbeput_.insert(tmp);
 		}
 	}
 }
@@ -350,8 +352,8 @@ void Dbutils::Get_T_PKCourseNonSection(_RecordsetPtr & m_pRecordset) {
 		section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section")));
 		for (auto c : couque_[couinque_[pkcourse]].clsque_) {
 			tmp = make_pair(weekday - 1, section - 1);
-			if (c->canbeput_.find(tmp) == c->canbeput_.end())
-				c->canbeput_.insert(tmp);
+			if (clsque_[c].canbeput_.find(tmp) == clsque_[c].canbeput_.end())
+				clsque_[c].canbeput_.insert(tmp);
 		}
 	}	
 }
@@ -362,7 +364,7 @@ void Dbutils::UpdateUnionCls() {
 		for (auto& cls : vec.second) {
 			for (auto& ptr : vec.second) {
 				if (ptr != cls) {
-					cls->unioncls_.push_back(ptr);
+					clsque_[cls].unioncls_.push_back(ptr);
 				}
 			}
 		}
@@ -373,16 +375,18 @@ void Dbutils::UpdateContinueCls() {
 	//这里需要进行将数据库当中的一节课编程排课当中的一次课，这个需要删除已经生成的连堂课的多余的部分
 	//并且这个部分需要更新教室和教师关于这个课的信息
 	for (auto& vec : continues_cls_tab_) {
-		auto& cptr = (vec.second)[0];
+		auto cptr = (vec.second)[0];
 		//cptr->teacher_->clsque_.push_back(cptr);
 		//cptr->ttbptr_->clsque_.push_back(cptr);
-		cptr->duration_ = (vec.second).size();
-		cptr->type_ = 2;
+		clsque_[cptr].duration_ = (vec.second).size();
+		clsque_[cptr].type_ = 2;
 		for (auto i = 1; i < (vec.second).size(); i++) {
+			//直接记录哪几个节次被删除掉，但是并没有真正的去删除这些节次
 			deleted_units_set_.insert((vec.second)[i]);
-			delete (vec.second)[i];
+			//delete (vec.second)[i];
 		}
 	}
+	//将装有这些节点的记录给删除掉
 	for (auto& c : couque_) {
 		for (auto it = c.clsque_.begin(); it != c.clsque_.end();) {
 			if (deleted_units_set_.find(*it) != deleted_units_set_.end()) {

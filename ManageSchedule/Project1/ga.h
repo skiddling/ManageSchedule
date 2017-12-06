@@ -10,6 +10,8 @@ public:
 	int outtime_;//运行时限
 
 	GA();
+	GA(vector<Course> courses, vector<Teacher> teachers,
+		vector<TimeTable>timetables, vector<ClassUnit> units, unordered_set<int> deletedunits);
 	void GenerateTable();
 	void OutPutRes();
 
@@ -21,6 +23,8 @@ private:
 	vector<Teacher> teachers_;
 	vector<ClassUnit> units_;
 	vector<Course> courses_;
+	vector<TimeTable> timetables_;
+	unordered_set<int> deletedunits_;
 
 	void InitSchedules();
 	void GetSchedule(int thid, InterruptibleThread* t, future<Schedule>* fut);

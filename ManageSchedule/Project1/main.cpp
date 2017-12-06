@@ -208,6 +208,9 @@ int main(int argc, char* argv[]) {
 	//AddItime();
 	//Out();
 	cout << "end of init\n";
+	GA ga(db.couque_, db.teaque_, db.roomque_, db.clsque_, db.deleted_units_set_);
+	ga.GenerateTable();
+	ga.OutPutRes();
 	//system("PAUSE");
 	//return 0;
 	//GA ga(teachersmap, coursesmap, teachers, classunits, courses, timetables);

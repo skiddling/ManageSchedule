@@ -20,10 +20,8 @@ public:
 	string roomname_;//这个教室的名称
 	vector<vector<ClassUnit*>> roomtable_;//教室课表，指针只想当前自己clsque当中的内容
 
-	//节次指针序列，一节课一节课new出来的，所以用指针
-	//在copy的时候会涉及到深拷贝，不用vector的原因是在课表当中交换指针来的更快效率更高
-	//而如果用vector则不用再配合上相应的指针操作，所以写的方便，但是运行起来速度不够好
-	vector<ClassUnit*> clsque_;
+	//从节次指针改成节次序号，方便拷贝赋值等操作
+	vector<int> clsque_;
 	//vector<ClassUnit> cls_que_;//具体的指针序列
 	//vector<vector<bool>> tabletag_;//标记这个时节段是否能被安排放课，初始化课表用
 	void CalFitness(int& crash);
