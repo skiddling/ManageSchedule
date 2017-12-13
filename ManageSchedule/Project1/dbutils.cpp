@@ -12,6 +12,7 @@ string Dbutils::StartPk(string pktaskid) {
 	GetDataFromTable(&Dbutils::Get_T_PKClass, "T_PKClass");
 	//将这个班级上的课给取出来
 	GetDataFromTable(&Dbutils::Get_T_PKClassCourse, "T_PKClassCourse");
+
 	//取出这个班级当中的连堂课和预排和合班这类的信息
 	GetDataFromTable(&Dbutils::Get_T_PKClassCourseOrgSectionSet, "T_PKClassCourseOrgSectionSet");
 	//更新策略，先让所有的节次都关联上，然后再进行删除，也就是先把所有信息都补上再做删除处理
@@ -36,6 +37,10 @@ string Dbutils::StartPk(string pktaskid) {
 	}
 
 	//此处需要更新连堂和合班这两个集合当中所有节次的信息
+	//对节次进行一个排序，方便进行课表在初始化的时候的操作
+	sort(clsque_.begin(), clsque_.end());
+	//节次排序之后需要再将节次的index给到相应的教室，教师，科目的队列当中去
+	UpdateQueIndex();
 
 	return statement_;
 }
@@ -216,26 +221,28 @@ void Dbutils::Get_T_PKClassCourse(_RecordsetPtr & m_pRecordset) {
 		//4.把这个具体的节次和这个具体的教学班，一个教学班对应多个节次
 		//5.把这个具体的节次和这个具体的科目联系起来
 		for (auto i = 0; i < lessonnum; i++) {
-			clsque_.push_back(ClassUnit(&roomque_[roominque_[pkclass]], &teaque_[teainque_[pkteacher]], couque_[couinque_[pkcourse]]));
+			clsque_.push_back(ClassUnit(&roomque_[roominque_[pkclass]], &teaque_[teainque_[pkteacher]], &couque_[couinque_[pkcourse]]));
 			//auto clsptr = new ClassUnit(&roomque_[roominque_[pkclass]], &teaque_[teainque_[pkteacher]], couque_[couinque_[pkcourse]]);
 			//因为数据库是以一节课为单位，而算法当中是以一次课为单位，所以当前产生的需要在最后进行更新
 			//设置当前这节课的序号，接下来在设置这节课的一些信息的时候要用到
-			auto clsptr = clsque_.size() - 1;
+			auto clsindex = clsque_.size() - 1;
 			//clsptr->secionno_ = i + 1;
-			clsque_[clsptr].secionno_ = i + 1;
+			clsque_[clsindex].secionno_ = i + 1;
 			//unitstab_[pkclass][pkcourse][pkteacher][i + 1] = clsptr;
-			unitstab_[id][i + 1] = clsptr;
+			unitstab_[id][i + 1] = clsindex;
 			//具体这个班的这个课对应哪几节课
-			class_course_units_[id].push_back(clsptr);
+			class_course_units_[id].push_back(clsindex);
 			//这个代表了教学班的课程，一个教学班的课程含有多节课
-			roomque_[roominque_[pkclass]].clsque_.push_back(clsptr);
-			teaque_[teainque_[pkteacher]].clsque_.push_back(clsptr);
-			couque_[couinque_[pkcourse]].clsque_.push_back(clsptr);
+			roomque_[roominque_[pkclass]].clsqueindex_.push_back(clsindex);
+			teaque_[teainque_[pkteacher]].clsqueindex_.push_back(clsindex);
+			couque_[couinque_[pkcourse]].clsqueindex_.push_back(clsindex);
+
 			//设置课程当中的指向关系	
-			clsque_[clsptr].ttbptr_ = &roomque_[roominque_[pkclass]];
+			//这个好像在构造函数当中已经做了
+			/*clsque_[clsptr].ttbptr_ = &roomque_[roominque_[pkclass]];
 			clsque_[clsptr].teacher_ = &teaque_[teainque_[pkteacher]];
-			clsque_[clsptr].couptr_ = &couque_[couinque_[pkcourse]];
-			clsque_[clsptr].type_ = 1;
+			clsque_[clsptr].couptr_ = &couque_[couinque_[pkcourse]];*/
+			clsque_[clsindex].type_ = 1;
 		}
 	}
 }
@@ -314,7 +321,7 @@ void Dbutils::Get_T_PKClassNonSection(_RecordsetPtr & m_pRecordset) {
 		pkclass = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkClass")));
 		weekday = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("weekday")));
 		section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section")));
-		for (auto c : roomque_[roominque_[pkclass]].clsque_) {
+		for (auto c : roomque_[roominque_[pkclass]].clsqueindex_) {
 			tmp = make_pair(weekday - 1, section - 1);
 			if (clsque_[c].canbeput_.find(tmp) == clsque_[c].canbeput_.end())
 				clsque_[c].canbeput_.insert(tmp);
@@ -332,7 +339,7 @@ void Dbutils::Get_T_PKTeacherNonSection(_RecordsetPtr & m_pRecordset) {
 		pkteacher = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkTeacher")));
 		weekday = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("weekday")));
 		section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section")));
-		for (auto c : teaque_[teainque_[pkteacher]].clsque_) {
+		for (auto c : teaque_[teainque_[pkteacher]].clsqueindex_) {
 			tmp = make_pair(weekday - 1, section - 1);
 			if (clsque_[c].canbeput_.find(tmp) == clsque_[c].canbeput_.end())
 				clsque_[c].canbeput_.insert(tmp);
@@ -350,7 +357,7 @@ void Dbutils::Get_T_PKCourseNonSection(_RecordsetPtr & m_pRecordset) {
 		pkcourse = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkCourse")));
 		weekday = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("weekday")));
 		section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section")));
-		for (auto c : couque_[couinque_[pkcourse]].clsque_) {
+		for (auto c : couque_[couinque_[pkcourse]].clsqueindex_) {
 			tmp = make_pair(weekday - 1, section - 1);
 			if (clsque_[c].canbeput_.find(tmp) == clsque_[c].canbeput_.end())
 				clsque_[c].canbeput_.insert(tmp);
@@ -364,30 +371,17 @@ void Dbutils::UpdateUnionCls() {
 		for (auto& cls : vec.second) {
 			for (auto& ptr : vec.second) {
 				if (ptr != cls) {
-					clsque_[cls].unioncls_.push_back(ptr);
+					//clsque_[cls].unioncls_.push_back(ptr);
+					clsque_[cls].union_cls_index_.push_back(ptr);
 				}
 			}
 		}
 	}
 }
 
-void Dbutils::UpdateContinueCls() {
-	//这里需要进行将数据库当中的一节课编程排课当中的一次课，这个需要删除已经生成的连堂课的多余的部分
-	//并且这个部分需要更新教室和教师关于这个课的信息
-	for (auto& vec : continues_cls_tab_) {
-		auto cptr = (vec.second)[0];
-		//cptr->teacher_->clsque_.push_back(cptr);
-		//cptr->ttbptr_->clsque_.push_back(cptr);
-		clsque_[cptr].duration_ = (vec.second).size();
-		clsque_[cptr].type_ = 2;
-		for (auto i = 1; i < (vec.second).size(); i++) {
-			//直接记录哪几个节次被删除掉，但是并没有真正的去删除这些节次
-			deleted_units_set_.insert((vec.second)[i]);
-			//delete (vec.second)[i];
-		}
-	}
-	//将装有这些节点的记录给删除掉
-	for (auto& c : couque_) {
+template <typename T>
+void UpdateIndex(vector<T>& vec, map<ClassUnit, int>& newpos) {
+	for (auto& c : vec) {
 		for (auto it = c.clsque_.begin(); it != c.clsque_.end();) {
 			if (deleted_units_set_.find(*it) != deleted_units_set_.end()) {
 				it = c.clsque_.erase(it);
@@ -395,7 +389,55 @@ void Dbutils::UpdateContinueCls() {
 			else it++;
 		}
 	}
-		for (auto& c : teaque_) {
+	for (auto& cou : vec) {
+		for (auto& cls : cou.clsque_) {
+			cls = newpos[clsque_[cls]];
+		}
+	}
+}
+
+void Dbutils::UpdateContinueCls() {
+	//这里需要进行将数据库当中的一节课编程排课当中的一次课，这个需要删除已经生成的连堂课的多余的部分
+	//并且这个部分需要更新教室和教师关于这个课的信息
+	//这里需要重新设计，为了和原本的系统进行对接，把这里多余的节次去掉，然后做映射到新的队列位置上
+	for (auto& vec : continues_cls_tab_) {
+		auto cptr = (vec.second)[0];
+		//cptr->teacher_->clsque_.push_back(cptr);
+		//cptr->ttbptr_->clsque_.push_back(cptr);
+		clsque_[cptr].duration_ = (vec.second).size();
+		//clsque_[cptr].type_ = 2;
+		for (auto i = 1; i < (vec.second).size(); i++) {
+			//直接记录哪几个节次被删除掉，但是并没有真正的去删除这些节次
+			deleted_units_set_.insert((vec.second)[i]);
+			//delete (vec.second)[i];
+		}
+	}
+	map<ClassUnit, int> new_pos_;
+	vector<ClassUnit> tmpque;
+	for (auto i = 0; i < clsque_.size(); i++) {
+		if (deleted_units_set_.find(i) == deleted_units_set_.end()) {
+			tmpque.push_back(clsque_[i]);
+			new_pos_[clsque_[i]] = tmpque.size() - 1;
+		}
+	}
+	//将装有这些节点的记录给删除掉
+	UpdateIndex(couque_, new_pos_);
+	UpdateIndex(teaque_, new_pos_);
+	UpdateIndex(roomque_, new_pos_);
+	/*for (auto& c : couque_) {
+		for (auto it = c.clsque_.begin(); it != c.clsque_.end();) {
+			if (deleted_units_set_.find(*it) != deleted_units_set_.end()) {
+				it = c.clsque_.erase(it);
+			}
+			else it++;
+		}
+	}
+	for (auto& cou : couque_) {
+		for (auto& cls : cou.clsque_) {
+			cls = new_pos_[clsque_[cls]];
+		}
+	}
+	for (auto& c : teaque_) {
 		for (auto it = c.clsque_.begin(); it != c.clsque_.end();) {
 			if (deleted_units_set_.find(*it) != deleted_units_set_.end()) {
 				it = c.clsque_.erase(it);
@@ -410,7 +452,25 @@ void Dbutils::UpdateContinueCls() {
 			}
 			else it++;
 		}
-	}
+	}*/
 
 }
 
+template <typename T>
+void ClearQueIndex(vector<T>& vec){
+	for (auto& t : vec) {
+		t.clsqueindex_.clear();
+	}
+}
+
+void Dbutils::UpdateQueIndex() {
+	//先全部重新清除原先的index，然后再按照排序过后的节次列表进行相应的恢复
+	ClearQueIndex(couque_);
+	ClearQueIndex(teaque_);
+	ClearQueIndex(roomque_);
+	for (auto i = 0; i < clsque_.size(); i++) {
+		clsque_[i].couptr_->clsqueindex_.push_back(i);
+		clsque_[i].teacher_->clsqueindex_.push_back(i);
+		clsque_[i].ttbptr_->clsqueindex_.push_back(i);
+	}
+}

@@ -10,23 +10,27 @@ public:
 	vector<Teacher> teachers_;//所有的教师的实体
 	vector<ClassUnit> clsque_;//全部节次的课
 	vector<TimeTable> timetables_;//所有的班级课表，相当于是一个指针容器
+	vector<Course> couque_;
 	int outtime_;
 	int crash_;
 	const double mxpocross_ = 0.2;
 
 	Schedule();
+	Schedule(vector<Course> couque, vector<Teacher> teachers, 
+		vector<TimeTable> timetables, vector<ClassUnit> clsque);
 	//copy construction
 	Schedule(const Schedule& s);
 	Schedule& operator=(const Schedule& s);
 	void GetSchedule(InterruptibleThread* t, future<Schedule>* fut);
-	void init();
+	bool init();
+	void UpdatePtrs();//指针深拷贝
 	
 private:
 	default_random_engine e_;
 	void CalFitness();
 	void Cross();
 	void Modify();
-	void UpdatePtrs();
+	//void UpdatePtrs();
 
 	void SwapClsUnit(ClassUnit& firstcls);
 	//flag = 1表示是在modify当中使用，0表示只是在cross当中使用

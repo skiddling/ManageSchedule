@@ -208,7 +208,7 @@ int main(int argc, char* argv[]) {
 	//AddItime();
 	//Out();
 	cout << "end of init\n";
-	GA ga(db.couque_, db.teaque_, db.roomque_, db.clsque_, db.deleted_units_set_);
+	GA ga(db.couque_, db.teaque_, db.roomque_, db.clsque_);
 	ga.GenerateTable();
 	ga.OutPutRes();
 	//system("PAUSE");

@@ -25,6 +25,8 @@ public:
 	int am_num_;
 	int pm_num_;
 	int ev_num_;
+	//此处的所有的都是索引值，因为此处的下标完全没有用，但是在排课系统当中需要进行相应的拷贝操作
+	//所以还是需要用到指针，所以在拷贝赋值的构造函数当中需要进行相应操作
 	vector<Course> couque_;
 	map<long long, Course> coutab_;//课程和相应id
 	map<long long, int> couinque_;//数据库id和相应队列当中的映射
@@ -93,4 +95,5 @@ private:
 	void GetPKCourseNonTeachingInfo();
 	void UpdateUnionCls();
 	void UpdateContinueCls();
+	void UpdateQueIndex();
 };

@@ -29,12 +29,16 @@ public:
 	int dbid_;//数据库当中这个课程的id
 	string dbjname_;//数据库当中这个课程的简称
 	string course_name_;
-	vector<int> clsque_;//所有这门课下的所有的具体的教学班，所有的都对应同一个schedule当中的节次
+	vector<int> clsqueindex_;//所有这门课下的所有的具体的教学班，所有的都对应同一个schedule当中的节次
+	vector<ClassUnit*> clsque_;//所有这门课下的所有的具体的教学班，所有的都对应同一个schedule当中的节次
 
 	Course();
 	Course(string cname);
 	Course(string dbjname, string course_name, int dbid);
 	
+	static string GetName() {
+		return "Course";
+	}
 
 private:
 	vector<Course> unioncous_;//合班的课程

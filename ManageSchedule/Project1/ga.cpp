@@ -9,15 +9,42 @@ GA::GA() {
 	schedules_ = vector<Schedule>(num_of_threads_ * thread_schedule_size_, res_);
 }
 
-GA::GA(vector<Course> courses, vector<Teacher> teachers, vector<TimeTable> timetables, vector<ClassUnit> units, unordered_set<int> deletedunits):
-	courses_(courses), teachers_(teachers), timetables_(timetables), units_(units), deletedunits_(deletedunits){
+//GA::GA(vector<Course> courses, vector<Teacher> teachers, vector<TimeTable> timetables, vector<ClassUnit> units):
+//	courses_(courses), teachers_(teachers), timetables_(timetables), units_(units){
+//	num_of_threads_ = 1;
+//	//num_of_threads_ = thread::hardware_concurrency();
+//	//生成一个初步的课表res_，然后通过拷贝到相应的各个具体课表当中去
+//	InitSchedules();
+//	//schedule copy construction 
+//	schedules_ = vector<Schedule>(num_of_threads_ * thread_schedule_size_, res_);
+//}
+
+GA::GA(vector<Course> courses, vector<Teacher> teachers, vector<TimeTable> timetables, vector<ClassUnit> units):
+	res_(courses, teachers, timetables, units){
+	//初始化课表，相当于所有的schedule拥有一个共同的初始化课表，利用语言自带的拷贝初始化来实现
+	//但是最终课表当中的指针还是要再更新过的
+	res_.init();
+	num_of_threads_ = 1;
+	//num_of_threads_ = thread::hardware_concurrency();
+	//生成一个初步的课表res_，然后通过拷贝到相应的各个具体课表当中去
+	//InitSchedules();
+	//schedule copy construction 
+	schedules_ = vector<Schedule>(num_of_threads_ * thread_schedule_size_, res_);
+	//更新各自的指针
+	for (auto& s : schedules_) {
+		s.UpdatePtrs();
+	}
 }
+
+
 
 void GA::InitSchedules() {
 	//step 1. init schedule res
 	//每个schedule不能进行拷贝，只能通过独立的初始化产生
-	res_.teachers_ = teachers_;
+	/*res_.teachers_ = teachers_;
 	res_.clsque_ = units_;
+	res_.timetables_ = timetables_;
+	res_.couque_ = courses_;*/
 	res_.init();
 }
 

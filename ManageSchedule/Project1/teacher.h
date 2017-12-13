@@ -10,13 +10,15 @@ public:
 	long long dbteacher_id_;
 	long long dbid_;//数据库当中用来唯一区分老师的id
 
-	Teacher(string dbname, long long pkcourse_id, long long dbteacher_id, long long dbid);
 
 	int teacherid_;
 	int idinque_;//在schedule的teachers当中的序号
 	vector<Course> couque_;//教学的科目
-	vector<int> clsque_;//属于这个老师所有的课的队列，所有的下标都来自于同一个schedule当中的所有的节次表
+	vector<ClassUnit*> clsque_;//属于这个老师所有的课的队列，所有的下标都来自于同一个schedule当中的所有的节次表
+	vector<int> clsqueindex_;
 	map<TimeTable, vector<ClassUnit*>> clstabque_;//这个老师的所有上的课
+
+	Teacher(string dbname, long long pkcourse_id, long long dbteacher_id, long long dbid);
 	Teacher();
 	vector<vector<int>> unitstimecount_;//节次时间的计数
 	vector<int> dayavailable_;//有空的天
@@ -34,6 +36,11 @@ public:
 		if (a.teacherid_ == teacherid_)return true;
 		return false;
 	}
+	
+	static string GetName() {
+		return "Teacher";
+	}
+
 private:
 	map<pair<int, int>, int> clsinperiod_;//该时间段上课次数
 	set<pair<int, int>> availperiods_;//教师有空时间

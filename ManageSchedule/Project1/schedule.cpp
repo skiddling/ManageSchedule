@@ -7,6 +7,11 @@ Schedule::Schedule(){
 	e_ = default_random_engine(time(NULL));
 }
 
+Schedule::Schedule(vector<Course> couque, vector<Teacher> teachers, vector<TimeTable> timetables, vector<ClassUnit> clsque):
+	couque_(couque), teachers_(teachers), timetables_(timetables), clsque_(clsque){ 
+
+}
+
 Schedule::Schedule(const Schedule& s):
 	crash_(s.crash_), 
 	outtime_(s.outtime_),
@@ -65,14 +70,47 @@ void Schedule::GetSchedule(InterruptibleThread * t, future<Schedule>* fut) {
 	}
 }
 
-void Schedule::init() {
-	UpdatePtrs();
+bool Schedule::init() {
+	//这个部分已经在数据库当中完成
+	//UpdatePtrs();
 	//2.然后安排每节课的时间
-	for (auto& t : timetables_)
-		t.Init();
+	for (auto& c : clsque_) {
+		if((c.hasbeenput_ == false) && !(c.ttbptr_->PutIntoTable(&c)))return false;
+	}
 	//3.更新headptr
 	for (auto &c : clsque_) {
 		c.headptr_ = &(c.ttbptr_->roomtable_[c.stime_.first][c.stime_.second]);
+	}
+}
+
+template<typename T>
+void GetPtrsFromClsSet(vector<T>& vec, vector<ClassUnit>& clsque) {
+	//此处将教师，教室，科目三个类别的指针全部都进行相应的更新
+	for (auto& v : vec) {
+		for (auto& t : v.clsqueindex_) {
+			v.clsque_.push_back(&(clsque[t]));
+			//*(static_cast<v.GetName()>(unitset[t].maptrs[v.GetName()])) = &t;
+			clsque[t].maptrs[v.GetName()] = &v;
+		}
+	}
+}
+
+void Schedule::UpdatePtrs() {
+	//开始进行深拷贝当中的指针的跟新的工作
+	//这里一共分成科目，老师，教室三部分来进行相应的指针的跟新
+	GetPtrsFromClsSet(teachers_, clsque_);
+	GetPtrsFromClsSet(timetables_, clsque_);
+	GetPtrsFromClsSet(couque_, clsque_);
+	for (auto& c : clsque_) {
+		c.couptr_ = static_cast<Course*>(c.maptrs_["Course"]);
+		c.teacher_ = static_cast<Teacher*>(c.maptrs_["Teacher"]);
+		c.ttbptr_ = static_cast<TimeTable*>(c.maptrs_["TimeTable"]);
+		//合班的课给补上指针
+		if (!c.union_cls_index_.empty()) {
+			for (auto index : c.union_cls_index_) {
+				c.unioncls_.push_back(&clsque_[index]);
+			}
+		}
 	}
 }
 
@@ -84,29 +122,30 @@ void Schedule::CalFitness() {
 		crash_ += c.CalFitness();
 }
 
-void Schedule::UpdatePtrs() {
-	for (auto& c : clsque_) {
-		//1.先将老师和自己的每节课进行挂钩
-		teachers_[c.GetTeacherIdInVec()].clsque_.push_back(&c);
-		c.teacher_ = &teachers_[c.GetTeacherIdInVec()];
-		
-		//2.把这个课和相应的上课教室挂钩
-		timetables_[c.GetTimeTableIdInVec()].clsque_.push_back(&c);
-		c.ttbptr_ = &timetables_[c.GetTimeTableIdInVec()];
-		//这个headptr需要等到init之后才能确定下来
-		//c.headptr_ = &(c.ttbptr_->roomtable_[c.stime_.first][c.stime_.second]);
-		
-		//3.更新课的课表当中的指向
-		for (auto i = 0; i < c.GetDuration(); i++) {
-			c.ttbptr_->roomtable_[c.stime_.first][c.stime_.second + i] = &c;
-		}
 
-		//4.更新合班课的指针指向
-		for (auto i = 0; i < c.unioncls_.size(); i++) {
-			c.unioncls_[i] = &(clsque_[c.unioclsid_[i]]);
-		}
-	}
-}
+//void Schedule::UpdatePtrs() {
+//	for (auto& c : clsque_) {
+//		//1.先将老师和自己的每节课进行挂钩
+//		teachers_[c.GetTeacherIdInVec()].clsque_.push_back(&c);
+//		c.teacher_ = &teachers_[c.GetTeacherIdInVec()];
+//		
+//		//2.把这个课和相应的上课教室挂钩
+//		timetables_[c.GetTimeTableIdInVec()].clsque_.push_back(&c);
+//		c.ttbptr_ = &timetables_[c.GetTimeTableIdInVec()];
+//		//这个headptr需要等到init之后才能确定下来
+//		//c.headptr_ = &(c.ttbptr_->roomtable_[c.stime_.first][c.stime_.second]);
+//		
+//		//3.更新课的课表当中的指向
+//		for (auto i = 0; i < c.GetDuration(); i++) {
+//			c.ttbptr_->roomtable_[c.stime_.first][c.stime_.second + i] = &c;
+//		}
+//
+//		//4.更新合班课的指针指向
+//		for (auto i = 0; i < c.unioncls_.size(); i++) {
+//			c.unioncls_[i] = &(clsque_[c.unioclsid_[i]]);
+//		}
+//	}
+//}
 
 void Schedule::Modify() {
 	//先判冲突再解决冲突
@@ -232,6 +271,7 @@ bool Schedule::AddUnitPtrIntoVec(bool flag, ClassUnit** cptr, pair<int, int> tim
 	//再判断这个是否是合班课
 	if (cls.unioclsid_.size()) {
 		for (auto& uc : cls.unioncls_) {
+			//if (!PutInSetVec(flag, clsque_[uc].headptr_, timedelta, k, 0, wait4swap, clstab))return false;
 			if (!PutInSetVec(flag, uc->headptr_, timedelta, k, 0, wait4swap, clstab))return false;
 			//if (!PutInSetVec(uc->headptr_, timedelta, 1 - k, 0, wait4swap, clstab))return false;
 		}

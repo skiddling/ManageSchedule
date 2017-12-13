@@ -1,8 +1,12 @@
 #include "ClassUnit.h"
 #include "timetable.h"
 
-ClassUnit::ClassUnit(TimeTable* ttb, Teacher * teacher, Course course):
-	ttbptr_(ttb), teacher_(teacher), course_(course){
+ClassUnit::ClassUnit(TimeTable* ttb, Teacher* teacher, Course* couptr):
+	ttbptr_(ttb), teacher_(teacher), couptr_(couptr){
+	//在表当中注册相应的地址值
+	maptrs_["Course"] = static_cast<void*>(&couptr_);
+	maptrs_["Teacher"] = static_cast<void*>(&teacher_);
+	maptrs_["TimeTable"] = static_cast<void*>(&ttbptr_);
 	e_ = default_random_engine(time(NULL));
 }
 
@@ -26,26 +30,55 @@ bool ClassUnit::GetType() {
 	return type_;
 }
 
-void ClassUnit::PutIntoTable(int day, int period) {
-	hasbeenput_ = true;
-	stime_.first = day;
-	stime_.second = period;
-	if (type_ == 1)teacher_->normalappear_[day] = 1;
-	headptr_ = &(ttbptr_->roomtable_[day][period]);
-	for (auto i = 0; i < duration_; i++) {
-		//更新教室信息
-		ttbptr_->roomtable_[day][period + i] = this;
-		//更新教师信息
-		teacher_->AddClsInPeriod(day, period + i);
-	}
-	//设置合班课
-	if (unioclsid_.size()) {
-		for (auto i = 0; i < unioncls_.size(); i++) {
-			if (unioncls_[i]->hasbeenput_ == false) {
-				unioncls_[i]->PutIntoTable(day, period);
+bool ClassUnit::PutIntoTable(int day, int period, bool flag) {
+	//hasbeenput_ = true;
+	//stime_.first = day;
+	//stime_.second = period;
+	//if (type_ == 1)teacher_->normalappear_[day] = 1;
+	//headptr_ = &(ttbptr_->roomtable_[day][period]);
+	//for (auto i = 0; i < duration_; i++) {
+	//	//更新教室信息
+	//	ttbptr_->roomtable_[day][period + i] = this;
+	//	//更新教师信息
+	//	teacher_->AddClsInPeriod(day, period + i);
+	//}
+	////设置合班课
+	//if (unioclsid_.size()) {
+	//	for (auto i = 0; i < unioncls_.size(); i++) {
+	//		if (unioncls_[i]->hasbeenput_ == false) {
+	//			unioncls_[i]->PutIntoTable(day, period);
+	//		}
+	//	}
+	//}
+	//新版本的操作
+	//最后一个flag是用来判断合班的时候用的是否要再检查一遍的作用,true表示要检查，false不用
+	//1.先判断是不是合班或者是连堂，在新版本的设计当中连堂和合班是不同时发生的，所以分开判断
+	if (union_cls_index_.size()) {
+		if (flag) {
+			for (auto& ucptr : unioncls_) {
+				if (!ucptr->CheckTimeEmpty(day, period))return false;
+			}
+			//每个合班课都有空
+			for (auto& ucptr : unioncls_) {
+				ucptr->PutIntoTable(day, period, false);
 			}
 		}
 	}
+	//判断是否是连堂课
+	else if (duration_ > 1) {
+		for (auto i = 1; i < duration_; i++) {
+			if (ttbptr_->roomtable_[day][period + i] != nullptr)return false;
+		}
+		for (auto i = 1; i < duration_; i++) {
+			ttbptr_->roomtable_[day][period + i] = this;
+			teacher_->AddClsInPeriod(day, period + i);
+		}
+		headptr_ = &(ttbptr_->roomtable_[day][period]);
+	}
+	//做更新操作
+	ttbptr_->roomtable_[day][period] = this;
+	stime_ = make_pair(day, period);
+	teacher_->AddClsInPeriod(day, period);
 }
 
 int ClassUnit::CalFitness() {
@@ -99,6 +132,11 @@ void ClassUnit::ChangeTime(pair<int, int> period) {
 	teacher_->UpdateUnit(this, period);
 	stime_ = period;
 	headptr_ = &(ttbptr_->roomtable_[period.first][period.second]);
+}
+
+bool ClassUnit::CheckTimeEmpty(int d, int p) {
+	if (ttbptr_->roomtable_[d][p] == nullptr)return true;
+	return false;
 }
 
 void ClassUnit::GetRandSet(vector<pair<int, int>>& randset) {
