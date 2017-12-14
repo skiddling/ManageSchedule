@@ -139,6 +139,12 @@ bool ClassUnit::CheckTimeEmpty(int d, int p) {
 	return false;
 }
 
+void ClassUnit::UpdateRoomPtr() {
+	for (auto i = 0; i < duration_; i++) {
+		ttbptr_->roomtable_[stime_.first][stime_.second + i] = this;
+	}
+}
+
 void ClassUnit::GetRandSet(vector<pair<int, int>>& randset) {
 	int id, sz = randset.size();
 	uniform_int_distribution<int> u(0, sz - 1);

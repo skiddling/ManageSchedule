@@ -7,10 +7,10 @@ class ClassUnit
 {
 public:
 	//data get from datebase
-	int secionno_;//这节课的序号
-	long long pkcombinateclassgroup_;//合班的组号，一起合班的课当做一个组有一个共同的组号
-	long long pkevensection_;//连堂的组号，几个节次合在一起的
-	long long dbid_;//数据库当中的教学班的id,也就是pkclasscocurse的值
+	int secionno_ = -1;//这节课的序号
+	long long pkcombinateclassgroup_ = -1;//合班的组号，一起合班的课当做一个组有一个共同的组号
+	long long pkevensection_ = -1;//连堂的组号，几个节次合在一起的
+	long long dbid_ = -1;//数据库当中的教学班的id,也就是pkclasscocurse的值
 
 	ClassUnit(TimeTable* ttb = nullptr, Teacher* teacher = nullptr, Course* couptr = nullptr);
 	ClassUnit();
@@ -25,6 +25,9 @@ public:
 	int type_;//这节课的类型，1表示普通，0表示辅助，2表示是普通类型的连堂课，但是辅助类型不能和他一起在同一天出现
 	int duration_;//课时长度
 
+	bool preput_ = false;//表示这个课是否被预排了
+	pair<int, int> pretime_ = make_pair(-1, -1);
+
 	//vector<int> unioncls_;//合班课程，数值都是指向同一个schedule当中的下标
 	vector<int> union_cls_index_;//合班课程，数值都是指向同一个schedule当中的下标
 	vector<ClassUnit*> unioncls_;//合班课程，数值都是指向同一个schedule当中的指针
@@ -36,13 +39,17 @@ public:
 	set<pair<int, int>> canbeput_;//与canntbeput是补集
 	
 	//方便课表初始化操作
-	bool operator < (const ClassUnit c) {
+	bool operator < (const ClassUnit& c)const {
 		if (duration_ + union_cls_index_.size() != c.duration_ + c.union_cls_index_.size())
 			return duration_ + union_cls_index_.size() > c.duration_ + c.union_cls_index_.size();
 		/*else if (unioclsid_.size() != c.unioclsid_.size())
 			return unioclsid_.size() > c.unioclsid_.size();*/
 		else if (canntbeput_.size() != c.canntbeput_.size())
 			return canntbeput_.size() > c.canntbeput_.size();
+		else if (dbid_ != c.dbid_)
+			return dbid_ < c.dbid_;
+		else if (secionno_ != c.secionno_)
+			return secionno_ < c.secionno_;
 	}
 	
 	string GetTeaName();
@@ -58,6 +65,7 @@ public:
 	void ChangeTime(pair<int, int> period);
 	//初始化的时候检查这个时间段是否有空
 	bool CheckTimeEmpty(int d, int p);
+	void UpdateRoomPtr();
 	
 private:
 	default_random_engine e_;

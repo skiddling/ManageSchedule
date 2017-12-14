@@ -1,4 +1,5 @@
 #include "schedule.h"
+#include "InterruptibleThread.h"
 
 int flag;
 mutex mtx;
@@ -77,10 +78,11 @@ bool Schedule::init() {
 	for (auto& c : clsque_) {
 		if((c.hasbeenput_ == false) && !(c.ttbptr_->PutIntoTable(&c)))return false;
 	}
-	//3.更新headptr
-	for (auto &c : clsque_) {
-		c.headptr_ = &(c.ttbptr_->roomtable_[c.stime_.first][c.stime_.second]);
-	}
+
+	////3.更新headptr
+	//for (auto &c : clsque_) {
+	//	c.headptr_ = &(c.ttbptr_->roomtable_[c.stime_.first][c.stime_.second]);
+	//}
 }
 
 template<typename T>
@@ -90,7 +92,7 @@ void GetPtrsFromClsSet(vector<T>& vec, vector<ClassUnit>& clsque) {
 		for (auto& t : v.clsqueindex_) {
 			v.clsque_.push_back(&(clsque[t]));
 			//*(static_cast<v.GetName()>(unitset[t].maptrs[v.GetName()])) = &t;
-			clsque[t].maptrs[v.GetName()] = &v;
+			clsque[t].maptrs_[v.GetName()] = &v;
 		}
 	}
 }
@@ -111,6 +113,10 @@ void Schedule::UpdatePtrs() {
 				c.unioncls_.push_back(&clsque_[index]);
 			}
 		}
+	}
+	//更新每个课表当中的指针
+	for (auto& c : clsque_) {
+		c.UpdateRoomPtr();
 	}
 }
 

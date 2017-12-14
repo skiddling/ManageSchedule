@@ -8,7 +8,7 @@ class Dbutils
 public:
 	void GetDBData(char* argv[], map<string, int> &teachersmap, map<string, int> &coursesmap, vector<Teacher> &teachers, vector<Course> &courses, vector<TimeTable> &timetables);
 	void OutPutPKTeaching(Schedule res);
-	void StartPK();
+	//void StartPK();
 	
 	//DButil();
 	string StartPk(string pktaskid);
@@ -97,3 +97,5 @@ private:
 	void UpdateContinueCls();
 	void UpdateQueIndex();
 };
+
+

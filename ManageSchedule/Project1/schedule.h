@@ -1,8 +1,10 @@
 #pragma once
 #include "timetable.h"
 #include "interruptflag.h"
-#include "InterruptibleThread.h"
 //#include "InterruptibleThread.h"
+//#include "InterruptibleThread.h"
+
+class InterruptibleThread;
 
 class Schedule
 {

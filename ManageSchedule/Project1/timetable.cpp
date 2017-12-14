@@ -10,9 +10,11 @@ void TimeTable::CalFitness(int& crash) {
 	}
 }
 
+TimeTable::TimeTable() {
+}
+
 TimeTable::TimeTable(string roomname, int days, int periods, long long class_id, long long dbid) :
 	roomname_(roomname), days_(days), periods_(periods), class_id_(class_id), dbid_(dbid){
-	roomtable_ = vector<vector<ClassUnit*>>(periods_, vector<ClassUnit*>(days_, nullptr));
 }
 
 //TimeTable::TimeTable(const TimeTable & t):

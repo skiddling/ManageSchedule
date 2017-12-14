@@ -24,10 +24,11 @@ string Dbutils::StartPk(string pktaskid) {
 	GetDataFromTable(&Dbutils::Get_T_PKCourseNonSection, "T_PKCourseNonSection");
 
 	//因为这里系统当中明确连堂不和合班同时发生
+	//新版本这里不用这个步骤，这个步骤在排序之后处理
 	//判断是否有合班的情况
-	if (!unionclstab_.empty()) {
+	/*if (!unionclstab_.empty()) {
 		UpdateUnionCls();
-	}
+	}*/
 	//判断是否有连堂的情况
 	//这个部分是重点，因为之前生成了所有对的教学班
 	//然后这里有很多教学班会因为连堂的关系需要被删除
@@ -47,14 +48,60 @@ string Dbutils::StartPk(string pktaskid) {
 
 string Dbutils::StartPk() {
 	//pktaskid_ = pktaskid;
-	pktaskid_ = "10012";
+	pktaskid_ = "1";
 	statement_ = "";
 	GetDBInfo();
+	GetDataFromTable(&Dbutils::Get_T_PKTask, "T_PKTask");
+	GetDataFromTable(&Dbutils::Get_T_PKCourse, "T_PKCourse");
+	GetDataFromTable(&Dbutils::Get_T_PKTeacher, "T_PKTeacher");
+	GetDataFromTable(&Dbutils::Get_T_PKClass, "T_PKClass");
+	//将这个班级上的课给取出来
+	GetDataFromTable(&Dbutils::Get_T_PKClassCourse, "T_PKClassCourse");
+
+	//取出这个班级当中的连堂课和预排和合班这类的信息
+	GetDataFromTable(&Dbutils::Get_T_PKClassCourseOrgSectionSet, "T_PKClassCourseOrgSectionSet");
+	//更新策略，先让所有的节次都关联上，然后再进行删除，也就是先把所有信息都补上再做删除处理
+	//取出所有相关的不排课的时间
+	//一共分四种：教学班，行政班（教室），教师，科目
+	GetDataFromTable(&Dbutils::Get_T_PKClassCourseNonSection, "T_PKClassCourseNonSection");
+	GetDataFromTable(&Dbutils::Get_T_PKClassNonSection, "T_PKClassNonSection");
+	GetDataFromTable(&Dbutils::Get_T_PKTeacherNonSection, "T_PKTeacherNonSection");
+	GetDataFromTable(&Dbutils::Get_T_PKCourseNonSection, "T_PKCourseNonSection");
+
+	//因为这里系统当中明确连堂不和合班同时发生
+	//新版本这里不用这个步骤，这个步骤在排序之后处理
+	//判断是否有合班的情况
+	/*if (!unionclstab_.empty()) {
+		UpdateUnionCls();
+	}*/
+	//判断是否有连堂的情况
+	//这个部分是重点，因为之前生成了所有对的教学班
+	//然后这里有很多教学班会因为连堂的关系需要被删除
+	//这里需要删除的就是教学班，教室，教师，科目这三个当中的部分
+	if (!continues_cls_tab_.empty()) {
+		UpdateContinueCls();
+	}
+
+	//此处需要更新连堂和合班这两个集合当中所有节次的信息
+	//对节次进行一个排序，方便进行课表在初始化的时候的操作
+	sort(clsque_.begin(), clsque_.end());
+	//节次排序之后需要再将节次的index给到相应的教室，教师，科目的队列当中去
+	UpdateQueIndex();
 
 	return statement_;
 }
 
 void Dbutils::OutPutResult() {
+}
+
+void Dbutils::CutString(string & s) {
+	s = s.substr(s.find("=") + 1, s.length() - s.find("=") - 1);
+}
+
+string Dbutils::SetDBProperties() {
+	string s = "Provider=SQLOLEDB;Server=127.0.0.1,1433;Database=" + dbname_ + ";uid="
+			+ dbuser_name_ + ";pwd=" + dbuser_pwd_ + ";";
+	return s;
 }
 
 void Dbutils::GetDBInfo() {
@@ -221,6 +268,7 @@ void Dbutils::Get_T_PKClassCourse(_RecordsetPtr & m_pRecordset) {
 		//4.把这个具体的节次和这个具体的教学班，一个教学班对应多个节次
 		//5.把这个具体的节次和这个具体的科目联系起来
 		for (auto i = 0; i < lessonnum; i++) {
+			//这个构造函数非常的重要，直接为后面省去了很多指针和下标更新的操作
 			clsque_.push_back(ClassUnit(&roomque_[roominque_[pkclass]], &teaque_[teainque_[pkteacher]], &couque_[couinque_[pkcourse]]));
 			//auto clsptr = new ClassUnit(&roomque_[roominque_[pkclass]], &teaque_[teainque_[pkteacher]], couque_[couinque_[pkcourse]]);
 			//因为数据库是以一节课为单位，而算法当中是以一次课为单位，所以当前产生的需要在最后进行更新
@@ -249,7 +297,7 @@ void Dbutils::Get_T_PKClassCourse(_RecordsetPtr & m_pRecordset) {
 
 void Dbutils::Get_T_PKClassCourseOrgSectionSet(_RecordsetPtr & m_pRecordset) {
 	//通过获得相应的每节课的信息然	
-	long long pkclasscourse, pkcombinateclassgroup, pkcombinateclassgroup, pkevensection;
+	long long pkclasscourse, pkcombinateclassgroup, pkevensection;
 	long long pkteacher, pkcourse;
 	int secionno, sfevensection, sfpre, section, sectionperweek, sfcombinate;
 	int cptr;
@@ -278,8 +326,10 @@ void Dbutils::Get_T_PKClassCourseOrgSectionSet(_RecordsetPtr & m_pRecordset) {
 			//这节课已经被预排了
 			section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section")));
 			sectionperweek = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("sectionPerWeek")));
-			clsque_[unitstab_[pkclasscourse][secionno]].hasbeenput_ = true;
-			clsque_[unitstab_[pkclasscourse][secionno]].stime_ = make_pair(sectionperweek - 1, section - 1);
+			//clsque_[unitstab_[pkclasscourse][secionno]].hasbeenput_ = true;
+			clsque_[unitstab_[pkclasscourse][secionno]].preput_ = true;
+			//clsque_[unitstab_[pkclasscourse][secionno]].stime_ = make_pair(sectionperweek - 1, section - 1);
+			clsque_[unitstab_[pkclasscourse][secionno]].pretime_ = make_pair(sectionperweek - 1, section - 1);
 		}
 		else if (sfcombinate) {
 			//已经合班了，这里合班和连堂认为是不能同时发生的条件
@@ -379,23 +429,6 @@ void Dbutils::UpdateUnionCls() {
 	}
 }
 
-template <typename T>
-void UpdateIndex(vector<T>& vec, map<ClassUnit, int>& newpos) {
-	for (auto& c : vec) {
-		for (auto it = c.clsque_.begin(); it != c.clsque_.end();) {
-			if (deleted_units_set_.find(*it) != deleted_units_set_.end()) {
-				it = c.clsque_.erase(it);
-			}
-			else it++;
-		}
-	}
-	for (auto& cou : vec) {
-		for (auto& cls : cou.clsque_) {
-			cls = newpos[clsque_[cls]];
-		}
-	}
-}
-
 void Dbutils::UpdateContinueCls() {
 	//这里需要进行将数据库当中的一节课编程排课当中的一次课，这个需要删除已经生成的连堂课的多余的部分
 	//并且这个部分需要更新教室和教师关于这个课的信息
@@ -420,40 +453,8 @@ void Dbutils::UpdateContinueCls() {
 			new_pos_[clsque_[i]] = tmpque.size() - 1;
 		}
 	}
-	//将装有这些节点的记录给删除掉
-	UpdateIndex(couque_, new_pos_);
-	UpdateIndex(teaque_, new_pos_);
-	UpdateIndex(roomque_, new_pos_);
-	/*for (auto& c : couque_) {
-		for (auto it = c.clsque_.begin(); it != c.clsque_.end();) {
-			if (deleted_units_set_.find(*it) != deleted_units_set_.end()) {
-				it = c.clsque_.erase(it);
-			}
-			else it++;
-		}
-	}
-	for (auto& cou : couque_) {
-		for (auto& cls : cou.clsque_) {
-			cls = new_pos_[clsque_[cls]];
-		}
-	}
-	for (auto& c : teaque_) {
-		for (auto it = c.clsque_.begin(); it != c.clsque_.end();) {
-			if (deleted_units_set_.find(*it) != deleted_units_set_.end()) {
-				it = c.clsque_.erase(it);
-			}
-			else it++;
-		}
-	}
-	for (auto& c : roomque_) {
-		for (auto it = c.clsque_.begin(); it != c.clsque_.end();) {
-			if (deleted_units_set_.find(*it) != deleted_units_set_.end()) {
-				it = c.clsque_.erase(it);
-			}
-			else it++;
-		}
-	}*/
-
+	clsque_ = tmpque;
+	//至此clsque当中要删除的节次都已经被删除了
 }
 
 template <typename T>
@@ -472,5 +473,15 @@ void Dbutils::UpdateQueIndex() {
 		clsque_[i].couptr_->clsqueindex_.push_back(i);
 		clsque_[i].teacher_->clsqueindex_.push_back(i);
 		clsque_[i].ttbptr_->clsqueindex_.push_back(i);
+	}
+	//暴力更新所有合班课的班级数组下标
+	for (auto i = 0; i < clsque_.size(); i++) {
+		if (clsque_[i].pkcombinateclassgroup_ != -1) {
+			for (auto j = 0; j < clsque_.size(); j++) {
+				if (i != j && clsque_[i].pkcombinateclassgroup_ == clsque_[j].pkcombinateclassgroup_) {
+					clsque_[i].union_cls_index_.push_back(j);
+				}
+			}
+		}
 	}
 }
