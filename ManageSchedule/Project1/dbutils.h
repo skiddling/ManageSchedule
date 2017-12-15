@@ -36,7 +36,7 @@ public:
 	map<long long, int> teainque_;//数据库id和相应的队列当中映射
 	
 	vector<TimeTable> roomque_;
-	map<long long, TimeTable> roomtab_;
+	//map<long long, TimeTable> roomtab_;
 	map<long long, int> roominque_;//数据库id和相应的队列当中的映射
 
 	//教学班映射表，也就是教学班的id对应具体哪几节课

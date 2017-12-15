@@ -16,14 +16,16 @@ public:
 	ClassUnit();
 	map<string, void*> maptrs_;//用来做反射用的指针表
 	Course course_;//这节是什么课
+	//一下是核心的三个指针
 	Course* couptr_;
 	Teacher* teacher_;//这节课的任课老师的指针
-	pair<int, int> stime_ = make_pair(-1, -1);//具体这节课的起始时间
 	TimeTable* ttbptr_;//指向自己所在课表的指针，这个是要在赋值的时候修改的
-	bool hasbeenput_;//表示这节课是否已经被放到课表当中，用于课表初始化
-	ClassUnit** headptr_;//用来标示是否是连堂课的第一节，指针内容是ttb当中指向第一节这个课的指针
+
+	pair<int, int> stime_ = make_pair(-1, -1);//具体这节课的起始时间
+	bool hasbeenput_ = false;//表示这节课是否已经被放到课表当中，用于课表初始化
+	ClassUnit** headptr_ = nullptr;//用来标示是否是连堂课的第一节，指针内容是ttb当中指向第一节这个课的指针
 	int type_;//这节课的类型，1表示普通，0表示辅助，2表示是普通类型的连堂课，但是辅助类型不能和他一起在同一天出现
-	int duration_;//课时长度
+	int duration_ = 1;//课时长度，刚开始创建都是1，之后会修改成连堂的数值
 
 	bool preput_ = false;//表示这个课是否被预排了
 	pair<int, int> pretime_ = make_pair(-1, -1);

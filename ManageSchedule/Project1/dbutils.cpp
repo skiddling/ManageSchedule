@@ -24,11 +24,10 @@ string Dbutils::StartPk(string pktaskid) {
 	GetDataFromTable(&Dbutils::Get_T_PKCourseNonSection, "T_PKCourseNonSection");
 
 	//因为这里系统当中明确连堂不和合班同时发生
-	//新版本这里不用这个步骤，这个步骤在排序之后处理
 	//判断是否有合班的情况
-	/*if (!unionclstab_.empty()) {
+	if (!unionclstab_.empty()) {
 		UpdateUnionCls();
-	}*/
+	}
 	//判断是否有连堂的情况
 	//这个部分是重点，因为之前生成了所有对的教学班
 	//然后这里有很多教学班会因为连堂的关系需要被删除
@@ -69,11 +68,10 @@ string Dbutils::StartPk() {
 	GetDataFromTable(&Dbutils::Get_T_PKCourseNonSection, "T_PKCourseNonSection");
 
 	//因为这里系统当中明确连堂不和合班同时发生
-	//新版本这里不用这个步骤，这个步骤在排序之后处理
 	//判断是否有合班的情况
-	/*if (!unionclstab_.empty()) {
+	if (!unionclstab_.empty()) {
 		UpdateUnionCls();
-	}*/
+	}
 	//判断是否有连堂的情况
 	//这个部分是重点，因为之前生成了所有对的教学班
 	//然后这里有很多教学班会因为连堂的关系需要被删除
@@ -164,27 +162,26 @@ void Dbutils::GetDataFromTable(void(Dbutils::* funcptr)(_RecordsetPtr &m_pRecord
 void Dbutils::Get_T_PKTask(_RecordsetPtr & m_pRecordset) {
 	_variant_t var;
 	m_pRecordset->MoveFirst();
-	var = m_pRecordset->Fields->GetItem(static_cast<_variant_t>("name"));
+	var = m_pRecordset->Fields->GetItem(static_cast<_variant_t>("name"))->Value;
 	task_name_ = static_cast<const char*>(static_cast<_bstr_t>(var));
-	
-	term_id_ = static_cast<long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("termId")));
-
-	var = m_pRecordset->Fields->GetItem(static_cast<_variant_t>("termName"));
+	cout << "task_name_ " << task_name_  << endl;
+	term_id_ = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("termId"))->Value);
+	cout << "term_id_ " << term_id_ << endl;
+	var = m_pRecordset->Fields->GetItem(static_cast<_variant_t>("termName"))->Value;
 	term_name_ = static_cast<const char*>(static_cast<_bstr_t>(var));
-
-	var = m_pRecordset->Fields->GetItem(static_cast<_variant_t>("gradeName"));
+	cout << "term_name_ " << term_name_ << endl;
+	var = m_pRecordset->Fields->GetItem(static_cast<_variant_t>("gradeName"))->Value;
 	grade_name_ = static_cast<const char*>(static_cast<_bstr_t>(var));
+	cout << "grade_name_ " << grade_name_ << endl;
 
-
-	day_num_ = static_cast<long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("dayNum")));
-
-	am_num_ = static_cast<long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("amNum")));
-
-	pm_num_ = static_cast<long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pmNum")));
-
-	pm_num_ = static_cast<long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pmNum")));
-
-	ev_num_ = static_cast<long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("evNum")));
+	day_num_ = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("dayNum"))->Value);
+	cout << "day_num_ " << day_num_ << endl;
+	am_num_ = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("amNum"))->Value);
+	cout << "am_num_ " << am_num_ << endl;
+	pm_num_ = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pmNum"))->Value);
+	cout << "pm_num_ " << pm_num_ << endl;
+	ev_num_ = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("evNum"))->Value);
+	cout << "ev_num_ " << ev_num_ << endl;
 }
 
 void Dbutils::Get_T_PKCourse(_RecordsetPtr & m_pRecordset) {
@@ -193,19 +190,21 @@ void Dbutils::Get_T_PKCourse(_RecordsetPtr & m_pRecordset) {
 	long long dbid;
 	m_pRecordset->MoveFirst();
 	while (!m_pRecordset->adoEOF) {
-		var = m_pRecordset->Fields->GetItem(static_cast<_variant_t>("name"));
+		var = m_pRecordset->Fields->GetItem(static_cast<_variant_t>("name"))->Value;
 		name = static_cast<const char*>(static_cast<_bstr_t>(var));	
 
-		var = m_pRecordset->Fields->GetItem(static_cast<_variant_t>("jname"));
+		var = m_pRecordset->Fields->GetItem(static_cast<_variant_t>("jname"))->Value;
 		jname = static_cast<const char*>(static_cast<_bstr_t>(var));	
 
-		dbid = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("id")));
+		dbid = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("id"))->Value);
 
 		couque_.push_back(Course(jname, name, dbid));
 		couque_.back().course_id_ = couque_.size() - 1;
 		coutab_[dbid] = couque_.back();//课程id和课程做相应的映射
 		couinque_[dbid] = couque_.size() - 1;
+		m_pRecordset->MoveNext();
 	}
+	cout << "end of get all courses" << endl;
 }
 
 void Dbutils::Get_T_PKTeacher(_RecordsetPtr & m_pRecordset) {
@@ -214,18 +213,21 @@ void Dbutils::Get_T_PKTeacher(_RecordsetPtr & m_pRecordset) {
 	long long pkcourseid, teacherid, dbid;
 	m_pRecordset->MoveFirst();
 	while (!m_pRecordset->adoEOF){
-		var = m_pRecordset->Fields->GetItem(static_cast<_variant_t>("name"));
+		var = m_pRecordset->Fields->GetItem(static_cast<_variant_t>("name"))->Value;
 		name = static_cast<const char*>(static_cast<_bstr_t>(var));	
 	
-		pkcourseid = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkCourseId")));
-		teacherid = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("teacherId")));
-		dbid = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("id")));
+		pkcourseid = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkCourseId"))->Value);
+		teacherid = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("teacherId"))->Value);
+		dbid = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("id"))->Value);
 
 		teaque_.push_back(Teacher(name, pkcourseid, teacherid, dbid));
 		teaque_.back().teacherid_ = teaque_.size() - 1;
 		teaque_.back().couque_.push_back(coutab_[pkcourseid]);
-		teainque_[dbid] = couque_.size() - 1;
+		//teainque_[dbid] = couque_.size() - 1;
+		teainque_[dbid] = teaque_.size() - 1;
+		m_pRecordset->MoveNext();
 	}
+	cout << "end of get all teachers" << endl;
 }
 
 void Dbutils::Get_T_PKClass(_RecordsetPtr & m_pRecordset) {
@@ -234,17 +236,19 @@ void Dbutils::Get_T_PKClass(_RecordsetPtr & m_pRecordset) {
 	long long classid, dbid;
 	m_pRecordset->MoveFirst();
 	while (!m_pRecordset->adoEOF) {
-		var = m_pRecordset->Fields->GetItem(static_cast<_variant_t>("name"));
+		var = m_pRecordset->Fields->GetItem(static_cast<_variant_t>("name"))->Value;
 		name = static_cast<const char*>(static_cast<_bstr_t>(var));	
 		
-		classid = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("classId")));
-		dbid = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("id")));
+		classid = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("classId"))->Value);
+		dbid = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("id"))->Value);
 		
 		roomque_.push_back(TimeTable(name, day_num_, am_num_ + pm_num_, classid, dbid));
 		roomque_.back().roomid_ = roomque_.size() - 1;
-		roomtab_[roomque_.back().roomid_] = roomque_.back();
+		//roomtab_[roomque_.back().roomid_] = roomque_.back();
 		roominque_[dbid] = roomque_.size() - 1;
+		m_pRecordset->MoveNext();
 	}
+	cout << "end of get all rooms" << endl;
 }
 
 void Dbutils::Get_T_PKClassCourse(_RecordsetPtr & m_pRecordset) {
@@ -255,11 +259,11 @@ void Dbutils::Get_T_PKClassCourse(_RecordsetPtr & m_pRecordset) {
 	int lessonnum;
 	m_pRecordset->MoveFirst();
 	while (!m_pRecordset->adoEOF) {
-		pkclass = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkClass")));
-		pkcourse = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkCourse")));
-		pkteacher = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkTeacher")));
-		lessonnum = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("lessonNum")));
-		id = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("id")));
+		pkclass = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkClass"))->Value);
+		pkcourse = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkCourse"))->Value);
+		pkteacher = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkTeacher"))->Value);
+		lessonnum = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("lessonNum"))->Value);
+		id = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("id"))->Value);
 		//具体某一个课和具体班级的映射
 		cou_room_tab_[id] = roominque_[pkclass];
 		//1.把每个节次都生成出来
@@ -292,26 +296,30 @@ void Dbutils::Get_T_PKClassCourse(_RecordsetPtr & m_pRecordset) {
 			clsque_[clsptr].couptr_ = &couque_[couinque_[pkcourse]];*/
 			clsque_[clsindex].type_ = 1;
 		}
+		m_pRecordset->MoveNext();
 	}
+	cout << "get all class units" << endl;
 }
 
 void Dbutils::Get_T_PKClassCourseOrgSectionSet(_RecordsetPtr & m_pRecordset) {
 	//通过获得相应的每节课的信息然	
 	long long pkclasscourse, pkcombinateclassgroup, pkevensection;
 	long long pkteacher, pkcourse;
-	int secionno, sfevensection, sfpre, section, sectionperweek, sfcombinate;
+	int secionno, sfevensection, sfpre, section, weekday, sfcombinate;
 	int cptr;
 	m_pRecordset->MoveFirst();
 	while (!m_pRecordset->adoEOF) {
-		pkclasscourse = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkClassCourse")));
-		secionno = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("secionno")));
-		sfpre = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("sfpre")));
-		sfcombinate = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("sfCombinate")));
-		sfevensection = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("sfEvenSection")));
+		pkclasscourse = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkClassCourse"))->Value);
+		secionno = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("secionno"))->Value);
+		sfpre = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("sfpre"))->Value);
+		sfcombinate = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("sfCombinate"))->Value);
+		sfevensection = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("sfEvenSection"))->Value);
+
+		clsque_[unitstab_[pkclasscourse][secionno]].type_ = 1;//表示这个是一个普通的课程
 		//连堂这部分需要单独判断
 		if(sfevensection){
 			//连堂设置	
-			pkevensection = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkEvenSection")));
+			pkevensection = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkEvenSection"))->Value);
 			clsque_[unitstab_[pkclasscourse][secionno]].pkevensection_ = pkevensection;
 			clsque_[unitstab_[pkclasscourse][secionno]].type_ = 2;//表示这个是个连堂课
 			cptr = unitstab_[pkclasscourse][secionno];
@@ -324,23 +332,23 @@ void Dbutils::Get_T_PKClassCourseOrgSectionSet(_RecordsetPtr & m_pRecordset) {
 		//teaque_[teainque_[pkteacher]].clsque_.push_back(cptr);
 		if (sfpre) {
 			//这节课已经被预排了
-			section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section")));
-			sectionperweek = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("sectionPerWeek")));
+			section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section"))->Value);
+			weekday = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("weekday"))->Value);
+			//sectionperweek = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("sectionPerWeek"))->Value);
 			//clsque_[unitstab_[pkclasscourse][secionno]].hasbeenput_ = true;
 			clsque_[unitstab_[pkclasscourse][secionno]].preput_ = true;
 			//clsque_[unitstab_[pkclasscourse][secionno]].stime_ = make_pair(sectionperweek - 1, section - 1);
-			clsque_[unitstab_[pkclasscourse][secionno]].pretime_ = make_pair(sectionperweek - 1, section - 1);
+			clsque_[unitstab_[pkclasscourse][secionno]].pretime_ = make_pair(weekday - 1, section - 1);
 		}
-		else if (sfcombinate) {
+		if (sfcombinate) {
 			//已经合班了，这里合班和连堂认为是不能同时发生的条件
-			pkcombinateclassgroup = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkCombinateClassGroup")));
+			pkcombinateclassgroup = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkCombinateClassGroup"))->Value);
 			clsque_[unitstab_[pkclasscourse][secionno]].pkcombinateclassgroup_ = pkcombinateclassgroup;
 			unionclstab_[pkcombinateclassgroup].push_back(unitstab_[pkclasscourse][secionno]);
 		}
-		else {
-			clsque_[unitstab_[pkclasscourse][secionno]].type_ = 1;//表示这个是一个普通的课程
-		}
+		m_pRecordset->MoveNext();
 	}
+	cout << "get all units info" << endl;
 }
 
 void Dbutils::Get_T_PKClassCourseNonSection(_RecordsetPtr & m_pRecordset) {
@@ -349,16 +357,18 @@ void Dbutils::Get_T_PKClassCourseNonSection(_RecordsetPtr & m_pRecordset) {
 	long long pkclasscourse;
 	pair<int, int> tmp;
 	m_pRecordset->MoveFirst();
-	while (m_pRecordset->adoEOF) {
-		pkclasscourse = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkClassCourse")));
-		weekday = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("weekday")));
-		section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section")));
+	while (!m_pRecordset->adoEOF) {
+		pkclasscourse = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkClassCourse"))->Value);
+		weekday = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("weekday"))->Value);
+		section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section"))->Value);
 		for (auto c : class_course_units_[pkclasscourse]) {
 			tmp = make_pair(weekday - 1, section - 1);
-			if (clsque_[c].canbeput_.find(tmp) == clsque_[c].canbeput_.end())
-				clsque_[c].canbeput_.insert(tmp);
+			if (clsque_[c].canntbeput_.find(tmp) == clsque_[c].canntbeput_.end())
+				clsque_[c].canntbeput_.insert(tmp);
 		}
+		m_pRecordset->MoveNext();
 	}
+	cout << "get all class course not available time" << endl;
 }
 
 void Dbutils::Get_T_PKClassNonSection(_RecordsetPtr & m_pRecordset) {
@@ -367,16 +377,18 @@ void Dbutils::Get_T_PKClassNonSection(_RecordsetPtr & m_pRecordset) {
 	long long pkclass;
 	pair<int, int> tmp;
 	m_pRecordset->MoveFirst();
-	while (m_pRecordset->adoEOF) {
-		pkclass = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkClass")));
-		weekday = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("weekday")));
-		section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section")));
+	while (!m_pRecordset->adoEOF) {
+		pkclass = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkClass"))->Value);
+		weekday = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("weekday"))->Value);
+		section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section"))->Value);
 		for (auto c : roomque_[roominque_[pkclass]].clsqueindex_) {
 			tmp = make_pair(weekday - 1, section - 1);
-			if (clsque_[c].canbeput_.find(tmp) == clsque_[c].canbeput_.end())
-				clsque_[c].canbeput_.insert(tmp);
+			if (clsque_[c].canntbeput_.find(tmp) == clsque_[c].canntbeput_.end())
+				clsque_[c].canntbeput_.insert(tmp);
 		}
+		m_pRecordset->MoveNext();
 	}
+	cout << "get all rooms not available time" << endl;
 }
 
 void Dbutils::Get_T_PKTeacherNonSection(_RecordsetPtr & m_pRecordset) {
@@ -385,16 +397,18 @@ void Dbutils::Get_T_PKTeacherNonSection(_RecordsetPtr & m_pRecordset) {
 	long long pkteacher;
 	pair<int, int> tmp;
 	m_pRecordset->MoveFirst();
-	while (m_pRecordset->adoEOF) {
-		pkteacher = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkTeacher")));
-		weekday = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("weekday")));
-		section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section")));
+	while (!m_pRecordset->adoEOF) {
+		pkteacher = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkTeacher"))->Value);
+		weekday = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("weekday"))->Value);
+		section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section"))->Value);
 		for (auto c : teaque_[teainque_[pkteacher]].clsqueindex_) {
 			tmp = make_pair(weekday - 1, section - 1);
-			if (clsque_[c].canbeput_.find(tmp) == clsque_[c].canbeput_.end())
-				clsque_[c].canbeput_.insert(tmp);
+			if (clsque_[c].canntbeput_.find(tmp) == clsque_[c].canntbeput_.end())
+				clsque_[c].canntbeput_.insert(tmp);
 		}
+		m_pRecordset->MoveNext();
 	}
+	cout << "get all teacher not available time" << endl;
 }
 
 void Dbutils::Get_T_PKCourseNonSection(_RecordsetPtr & m_pRecordset) {
@@ -403,26 +417,28 @@ void Dbutils::Get_T_PKCourseNonSection(_RecordsetPtr & m_pRecordset) {
 	long long pkcourse;
 	pair<int, int> tmp;
 	m_pRecordset->MoveFirst();
-	while (m_pRecordset->adoEOF) {
-		pkcourse = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkCourse")));
-		weekday = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("weekday")));
-		section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section")));
+	while (!m_pRecordset->adoEOF) {
+		pkcourse = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkCourse"))->Value);
+		weekday = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("weekday"))->Value);
+		section = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("section"))->Value);
 		for (auto c : couque_[couinque_[pkcourse]].clsqueindex_) {
 			tmp = make_pair(weekday - 1, section - 1);
-			if (clsque_[c].canbeput_.find(tmp) == clsque_[c].canbeput_.end())
-				clsque_[c].canbeput_.insert(tmp);
+			if (clsque_[c].canntbeput_.find(tmp) == clsque_[c].canntbeput_.end())
+				clsque_[c].canntbeput_.insert(tmp);
 		}
+		m_pRecordset->MoveNext();
 	}	
+	cout << "get all course not available time" << endl;
 }
 
 void Dbutils::UpdateUnionCls() {
 	//将每个合班的节次都联系起来
-	for (auto& vec : unionclstab_) {
-		for (auto& cls : vec.second) {
-			for (auto& ptr : vec.second) {
-				if (ptr != cls) {
-					//clsque_[cls].unioncls_.push_back(ptr);
-					clsque_[cls].union_cls_index_.push_back(ptr);
+	//暴力更新所有合班课的班级数组下标
+	for (auto i = 0; i < clsque_.size(); i++) {
+		if (clsque_[i].pkcombinateclassgroup_ != -1) {
+			for (auto j = 0; j < clsque_.size(); j++) {
+				if (i != j && clsque_[i].pkcombinateclassgroup_ == clsque_[j].pkcombinateclassgroup_) {
+					clsque_[i].union_cls_index_.push_back(j);
 				}
 			}
 		}
@@ -455,6 +471,7 @@ void Dbutils::UpdateContinueCls() {
 	}
 	clsque_ = tmpque;
 	//至此clsque当中要删除的节次都已经被删除了
+	cout << "end of delete continues units" << endl;
 }
 
 template <typename T>
@@ -474,14 +491,6 @@ void Dbutils::UpdateQueIndex() {
 		clsque_[i].teacher_->clsqueindex_.push_back(i);
 		clsque_[i].ttbptr_->clsqueindex_.push_back(i);
 	}
-	//暴力更新所有合班课的班级数组下标
-	for (auto i = 0; i < clsque_.size(); i++) {
-		if (clsque_[i].pkcombinateclassgroup_ != -1) {
-			for (auto j = 0; j < clsque_.size(); j++) {
-				if (i != j && clsque_[i].pkcombinateclassgroup_ == clsque_[j].pkcombinateclassgroup_) {
-					clsque_[i].union_cls_index_.push_back(j);
-				}
-			}
-		}
-	}
+	
+	cout << "end of update index and union units" << endl;
 }
