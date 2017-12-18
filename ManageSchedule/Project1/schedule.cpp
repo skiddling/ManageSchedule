@@ -71,24 +71,72 @@ void Schedule::GetSchedule(InterruptibleThread * t, future<Schedule>* fut) {
 	}
 }
 
+void Schedule::GetUnitsAvailableTime() {
+	//暴力获得每个课能够摆放的时间
+	int days = timetables_[0].days_, periods = timetables_[0].periods_;
+	pair<int, int> tmp;
+	for (auto& c : clsque_) {
+		for (auto i = 0; i < days; i++) {
+			for (auto j = 0; j < periods; j++) {
+				tmp = make_pair(i, j);
+				if (c.canntbeput_.find(tmp) == c.canntbeput_.end()) {
+					c.canbeput_.insert(tmp);
+				}
+			}
+		}
+	}
+}
+
+void Schedule::GetTeachTime() {
+	//每个老师获得相应的上课时间
+	int days = timetables_[0].days_, periods = timetables_[0].periods_;
+	for (auto& t : teachers_) {
+		t.teach_time_ = vector<vector<int>>(days, vector<int>(periods, 0));
+	}
+	for (auto& c : clsque_) {
+		for (auto i = 0; i < c.duration_; i++) {
+			c.teacher_->teach_time_[c.stime_.first][c.stime_.second + i]++;
+		}
+	}
+}
+
+void Schedule::GetRoomCourseTime() {
+	//获得每个教室的具体的科目上课时间
+	int days = timetables_[0].days_;
+	vector<int> tmp(days, 0);
+	for (auto& c : clsque_) {
+		if (c.ttbptr_->course_time_.find(c.couptr_->dbid_) == c.ttbptr_->course_time_.end()) {
+			c.ttbptr_->course_time_[c.couptr_->dbid_] = tmp;
+		}
+		c.ttbptr_->course_time_[c.couptr_->dbid_][c.stime_.first]++;
+	}
+}
+
 bool Schedule::init() {
 	//这个部分已经在数据库当中完成
 	//UpdatePtrs();
 	//2.然后安排每节课的时间
+	int i = 0;
 	for (auto& c : clsque_) {
-		if((c.hasbeenput_ == false) && !(c.ttbptr_->PutIntoTable(&c)))return false;
+		if ((c.hasbeenput_ == false) && !(c.ttbptr_->PutIntoTable(&c))) {
+			cout << "false unit " << i << endl;
+			return false;
+		}
+		i++;
+		cout << i << endl;
 	}
+	GetUnitsAvailableTime();
+	GetTeachTime();
+	GetRoomCourseTime();
+	cout << "end of init table" << endl;
 
-	////3.更新headptr
-	//for (auto &c : clsque_) {
-	//	c.headptr_ = &(c.ttbptr_->roomtable_[c.stime_.first][c.stime_.second]);
-	//}
 }
 
 template<typename T>
 void GetPtrsFromClsSet(vector<T>& vec, vector<ClassUnit>& clsque) {
 	//此处将教师，教室，科目三个类别的指针全部都进行相应的更新
 	for (auto& v : vec) {
+		v.clsque_.clear();
 		for (auto& t : v.clsqueindex_) {
 			v.clsque_.push_back(&(clsque[t]));
 			//*(static_cast<v.GetName()>(unitset[t].maptrs[v.GetName()])) = &t;
@@ -109,15 +157,13 @@ void Schedule::UpdatePtrs() {
 		c.ttbptr_ = static_cast<TimeTable*>(c.maptrs_["TimeTable"]);
 		//合班的课给补上指针
 		if (!c.union_cls_index_.empty()) {
+			c.unioncls_.clear();
 			for (auto index : c.union_cls_index_) {
 				c.unioncls_.push_back(&clsque_[index]);
 			}
 		}
 	}
-	//更新每个课表当中的指针
-	for (auto& c : clsque_) {
-		c.UpdateRoomPtr();
-	}
+	
 }
 
 void Schedule::CalFitness() {
@@ -129,69 +175,66 @@ void Schedule::CalFitness() {
 }
 
 
-//void Schedule::UpdatePtrs() {
-//	for (auto& c : clsque_) {
-//		//1.先将老师和自己的每节课进行挂钩
-//		teachers_[c.GetTeacherIdInVec()].clsque_.push_back(&c);
-//		c.teacher_ = &teachers_[c.GetTeacherIdInVec()];
-//		
-//		//2.把这个课和相应的上课教室挂钩
-//		timetables_[c.GetTimeTableIdInVec()].clsque_.push_back(&c);
-//		c.ttbptr_ = &timetables_[c.GetTimeTableIdInVec()];
-//		//这个headptr需要等到init之后才能确定下来
-//		//c.headptr_ = &(c.ttbptr_->roomtable_[c.stime_.first][c.stime_.second]);
-//		
-//		//3.更新课的课表当中的指向
-//		for (auto i = 0; i < c.GetDuration(); i++) {
-//			c.ttbptr_->roomtable_[c.stime_.first][c.stime_.second + i] = &c;
-//		}
-//
-//		//4.更新合班课的指针指向
-//		for (auto i = 0; i < c.unioncls_.size(); i++) {
-//			c.unioncls_[i] = &(clsque_[c.unioclsid_[i]]);
-//		}
-//	}
-//}
-
 void Schedule::Modify() {
 	//先判冲突再解决冲突
+	pair<int, int> tmp;
 	for (auto& c : clsque_) {
-		if ((!c.CheckPeriod(c.stime_)) || (!c.teacher_->CheckUnit(&c, c.stime_))) {
-			//发现需要进行调换	
-			NeedToSwap(c);
+		//if ((!c.CheckPeriod(c.stime_)) || (!c.teacher_->CheckUnit(&c, c.stime_))) {
+		//新版本的判断操作
+		for (auto i = 0; i < c.duration_; i++) {
+			tmp = make_pair(c.stime_.first, c.stime_.second + i);
+			if (c.CheckTimeIllegal(tmp)) {
+				//发现需要进行调换	
+				NeedToSwap(c);
+				break;
+			}
 		}
 	}
 
 }
 
 void Schedule::NeedToSwap(ClassUnit& firstcls) {
-	//这节课需要被进行调换
-	//先获得可用时间的交集
+	//新版本去进行交换
+	//1.获得相应的可以进行交换的时间
+	//2.再进行交换
 	vector<pair<int, int>> canbeput = firstcls.GetRandAvailTime();
-	set<pair<int, int>> teavper = firstcls.teacher_->GetAvailPeriods();
-	vector<int> normaleappear = firstcls.teacher_->normalappear_;
-	for (auto it = canbeput.begin(); it != canbeput.end();) {
-		if (!firstcls.GetType()) {
-			if(!normaleappear[it->first])
-				it = canbeput.erase(it);
-		}
-		if (teavper.find(*it) == teavper.end()) {
-			it = canbeput.erase(it);
-		}
-		else it++;
-	}
-	//剩下的时间段就是可以进行调换的	
 	pair<int, int> tmp;
-	for (auto i = 0; i < canbeput.size(); i++) {
-		//timedelta对于0组来说是要进行相减的，1组的是要进行相加
-		tmp.first = firstcls.stime_.first - canbeput[i].first;
-		tmp.second = firstcls.stime_.second - canbeput[i].second;
-		//表示融合成功并且交换结束
-		if (UnionClsUnits(true, firstcls, tmp)) {
-			//表示已经成功放入wait4swap当中，然后准备相互之间的交换
-			break;
+	//如果是预排课
+	if (firstcls.preput_) {
+		tmp = firstcls.pretime_;
+	}
+	else {
+		bool flag;
+		if (canbeput.empty())return;
+		for (auto tim : canbeput) {
+			flag = true;
+			if (firstcls.CheckTimeIllegal(tim))flag = false;
+			//如果是连堂课
+			if (firstcls.duration_) {
+				for (auto i = 1; i < firstcls.duration_; i++) {
+					tmp = make_pair(tim.first, tim.second + i);
+					if (firstcls.CheckTimeIllegal(tmp)) {
+						flag = false;
+						break;
+					}
+				}
+			}
+			else if (!firstcls.union_cls_index_.empty()) {
+				for (auto& c : firstcls.unioncls_) {
+					if (c->CheckTimeIllegal(tim)) {
+						flag = false;
+						break;
+					}
+				}
+			}
+			//找到合适的时间
+			if (flag) {
+				tmp = tim;
+				break;
+			}
 		}
-	}	
+	}
+	SwapClsUnit(firstcls);
 }
 
 void Schedule::Cross() {

@@ -38,7 +38,9 @@ public:
 
 	//这个集合是最核心的两个集合
 	set<pair<int, int>> canntbeput_;//具体之这节课不能安排时间
-	set<pair<int, int>> canbeput_;//与canntbeput是补集
+	//与canntbeput是补集，最终在modify的时候这个只是一个当中的参与集合，另外一个是教师的时间
+	//新版本这里得到这个集合是采用的暴力求交集的方法
+	set<pair<int, int>> canbeput_;
 	
 	//方便课表初始化操作
 	bool operator < (const ClassUnit& c)const {
@@ -68,6 +70,7 @@ public:
 	//初始化的时候检查这个时间段是否有空
 	bool CheckTimeEmpty(int d, int p);
 	void UpdateRoomPtr();
+	bool CheckTimeIllegal(pair<int, int> tim);//检查这个课的时间是否合理
 	
 private:
 	default_random_engine e_;

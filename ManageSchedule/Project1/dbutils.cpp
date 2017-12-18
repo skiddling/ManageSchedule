@@ -41,7 +41,6 @@ string Dbutils::StartPk(string pktaskid) {
 	sort(clsque_.begin(), clsque_.end());
 	//节次排序之后需要再将节次的index给到相应的教室，教师，科目的队列当中去
 	UpdateQueIndex();
-
 	return statement_;
 }
 
@@ -85,7 +84,6 @@ string Dbutils::StartPk() {
 	sort(clsque_.begin(), clsque_.end());
 	//节次排序之后需要再将节次的index给到相应的教室，教师，科目的队列当中去
 	UpdateQueIndex();
-
 	return statement_;
 }
 
@@ -280,6 +278,7 @@ void Dbutils::Get_T_PKClassCourse(_RecordsetPtr & m_pRecordset) {
 			auto clsindex = clsque_.size() - 1;
 			//clsptr->secionno_ = i + 1;
 			clsque_[clsindex].secionno_ = i + 1;
+			clsque_[clsindex].dbid_ = id;
 			//unitstab_[pkclass][pkcourse][pkteacher][i + 1] = clsptr;
 			unitstab_[id][i + 1] = clsindex;
 			//具体这个班的这个课对应哪几节课
@@ -494,3 +493,4 @@ void Dbutils::UpdateQueIndex() {
 	
 	cout << "end of update index and union units" << endl;
 }
+

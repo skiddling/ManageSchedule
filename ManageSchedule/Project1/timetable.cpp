@@ -15,6 +15,7 @@ TimeTable::TimeTable() {
 
 TimeTable::TimeTable(string roomname, int days, int periods, long long class_id, long long dbid) :
 	roomname_(roomname), days_(days), periods_(periods), class_id_(class_id), dbid_(dbid){
+	roomtable_ = vector<vector<ClassUnit*>>(days, vector<ClassUnit*>(periods_, nullptr));
 }
 
 //TimeTable::TimeTable(const TimeTable & t):
@@ -65,11 +66,21 @@ bool TimeTable::PutIntoTable(ClassUnit * cptr) {
 	int i = pp, j = pd;
 	for (; i < periods_; i++) {
 		for (; j < days_; j++) {
-			if ((roomtable_[i][j] == nullptr) && cptr->PutIntoTable(j, i, true)) {
+			if ((roomtable_[j][i] == nullptr) && cptr->PutIntoTable(j, i, true)) {
 				//更新pp和pd
-				if (i == pp && j == pd) {
-					pp = (i + 1) % periods_;
+				/*if (i == pp && j == pd) {
 					pd = (j + 1) % days_;
+					if(pd == 0)pp = (i + 1) % periods_;
+				}*/
+				if (pp == periods_ - 1 && pd == days_ - 1){
+					pp == periods_;
+					pd = days_;
+				}
+				else if (i == pp && j == pd) {
+					do{
+						pd = (pd + 1) % days_;
+						if (pd == 0)pp++;
+					}while (roomtable_[pd][pp] != nullptr);
 				}
 				////更新表
 				//这个操作在unit当中完成
@@ -83,6 +94,7 @@ bool TimeTable::PutIntoTable(ClassUnit * cptr) {
 				return true;
 			}
 		}
+		j = 0;
 	}
 	return false;
 }

@@ -9,8 +9,8 @@ class InterruptibleThread;
 class Schedule
 {
 public:
-	vector<Teacher> teachers_;//所有的教师的实体
 	vector<ClassUnit> clsque_;//全部节次的课
+	vector<Teacher> teachers_;//所有的教师的实体
 	vector<TimeTable> timetables_;//所有的班级课表，相当于是一个指针容器
 	vector<Course> couque_;
 	int outtime_;
@@ -49,4 +49,7 @@ private:
 	bool CanBeSwap(bool flag, ClassUnit* c, pair<int, int> cperiod, ClassUnit* target, pair<int, int> tperiod);
 	void SwapUnitsInVec(vector<vector<ClassUnit**>>& wait4swap);
 	void NeedToSwap(ClassUnit& firstcls);
+	void GetUnitsAvailableTime();//获得所有节次的能排的时间，其实是不能排的补集
+	void GetTeachTime();//每个老师都获得相应的各自上课时间
+	void GetRoomCourseTime();//每个教室都获得相应的科目上课时间
 };

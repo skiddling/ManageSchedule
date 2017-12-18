@@ -18,6 +18,10 @@ public:
 	vector<int> clsqueindex_;
 	map<TimeTable, vector<ClassUnit*>> clstabque_;//这个老师的所有上的课
 
+	//新版本需要的，教师上课时间
+	vector<vector<int>> teach_time_;//所有的具体的上课时间
+	
+
 	Teacher(string dbname, long long pkcourse_id, long long dbteacher_id, long long dbid);
 	Teacher();
 	vector<vector<int>> unitstimecount_;//节次时间的计数

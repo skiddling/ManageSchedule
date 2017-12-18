@@ -26,7 +26,7 @@ class Course
 {
 public:
 	int course_id_;
-	int dbid_;//数据库当中这个课程的id
+	long long dbid_;//数据库当中这个课程的id
 	string dbjname_;//数据库当中这个课程的简称
 	string course_name_;
 	vector<int> clsqueindex_;//所有这门课下的所有的具体的教学班，所有的都对应同一个schedule当中的节次

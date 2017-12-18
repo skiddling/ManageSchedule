@@ -19,12 +19,16 @@ public:
 	int pd = 0, pp = 0;//用于课表初始化的时候用的作为课表摆放位置的索引
 	int roomid_;//这个班级的id，也是在vector<timetalbe>当中的序号,需要自己根据需要去建立
 	string roomname_;//这个教室的名称
-	vector<vector<ClassUnit*>> roomtable_ = 
-		vector<vector<ClassUnit*>>(periods_, vector<ClassUnit*>(days_, nullptr));//教室课表，指针只想当前自己clsque当中的内容
+	vector<vector<ClassUnit*>> roomtable_;// =
+		//vector<vector<ClassUnit*>>(days_, vector<ClassUnit*>(periods_, nullptr));//教室课表，指针只想当前自己clsque当中的内容
+		//vector<vector<ClassUnit*>>(periods_, vector<ClassUnit*>(days_, nullptr));//教室课表，指针只想当前自己clsque当中的内容
 
 	//从节次指针改成节次序号，方便拷贝赋值等操作
 	vector<int> clsqueindex_;
 	vector<ClassUnit*> clsque_;
+	
+	//新版本当中需要用来判断可调时间的一个数据，long long是某个课的id，int是一周上课次数
+	map<long long, vector<int>> course_time_;
 	//vector<ClassUnit>& unitset_;//这个是要和schedule当中的units保持一致的
 	//vector<ClassUnit> cls_que_;//具体的指针序列
 	//vector<vector<bool>> tabletag_;//标记这个时节段是否能被安排放课，初始化课表用

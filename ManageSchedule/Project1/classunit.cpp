@@ -31,25 +31,6 @@ bool ClassUnit::GetType() {
 }
 
 bool ClassUnit::PutIntoTable(int day, int period, bool flag) {
-	//hasbeenput_ = true;
-	//stime_.first = day;
-	//stime_.second = period;
-	//if (type_ == 1)teacher_->normalappear_[day] = 1;
-	//headptr_ = &(ttbptr_->roomtable_[day][period]);
-	//for (auto i = 0; i < duration_; i++) {
-	//	//更新教室信息
-	//	ttbptr_->roomtable_[day][period + i] = this;
-	//	//更新教师信息
-	//	teacher_->AddClsInPeriod(day, period + i);
-	//}
-	////设置合班课
-	//if (unioclsid_.size()) {
-	//	for (auto i = 0; i < unioncls_.size(); i++) {
-	//		if (unioncls_[i]->hasbeenput_ == false) {
-	//			unioncls_[i]->PutIntoTable(day, period);
-	//		}
-	//	}
-	//}
 	//新版本的操作
 	//最后一个flag是用来判断合班的时候用的是否要再检查一遍的作用,true表示要检查，false不用
 	//1.先判断是不是合班或者是连堂，在新版本的设计当中连堂和合班是不同时发生的，所以分开判断
@@ -143,6 +124,18 @@ void ClassUnit::UpdateRoomPtr() {
 	for (auto i = 0; i < duration_; i++) {
 		ttbptr_->roomtable_[stime_.first][stime_.second + i] = this;
 	}
+}
+
+bool ClassUnit::CheckTimeIllegal(pair<int, int> tim) {
+	//特判这个是预排的课
+	if (preput_ && tim != pretime_)return true;
+	//这个课在这天上了两次
+	if ((ttbptr_->course_time_)[couptr_->dbid_][tim.first] > 1)return true;
+	//这个老师同时上两节课
+	//这个课被放在了不能排的时间当中
+	if (teacher_->teach_time_[tim.first][tim.second] > 1)return true;
+	if (canntbeput_.find(make_pair(tim.first, tim.second)) != canntbeput_.end())return true;
+	return false;
 }
 
 void ClassUnit::GetRandSet(vector<pair<int, int>>& randset) {
