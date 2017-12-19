@@ -138,6 +138,14 @@ bool ClassUnit::CheckTimeIllegal(pair<int, int> tim) {
 	return false;
 }
 
+ClassUnit * ClassUnit::GetTargetUnit(pair<int, int> tim) {
+	return ttbptr_->roomtable_[tim.first][tim.second];
+}
+
+ClassUnit ** ClassUnit::GetTimeTablePtr(pair<int, int> tim) {
+	return &(ttbptr_->roomtable_[tim.first][tim.second]);
+}
+
 void ClassUnit::GetRandSet(vector<pair<int, int>>& randset) {
 	int id, sz = randset.size();
 	uniform_int_distribution<int> u(0, sz - 1);

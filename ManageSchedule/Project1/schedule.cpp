@@ -195,46 +195,106 @@ void Schedule::Modify() {
 
 void Schedule::NeedToSwap(ClassUnit& firstcls) {
 	//新版本去进行交换
-	//1.获得相应的可以进行交换的时间
+	//1.获得相应的可以进行交换的时间，这里相互调换指的是换过去和换过来的课都是合理的
+	//如果是预排课那么就不需要考虑换过去的课是否是合理的
 	//2.再进行交换
-	vector<pair<int, int>> canbeput = firstcls.GetRandAvailTime();
-	pair<int, int> tmp;
-	//如果是预排课
+	vector<pair<int, int>> canbeput;
+	//先特判预排课
 	if (firstcls.preput_) {
-		tmp = firstcls.pretime_;
+		if(firstcls.stime_ == firstcls.pretime_)return;
+		else canbeput.push_back(firstcls.pretime_);
 	}
-	else {
-		bool flag;
-		if (canbeput.empty())return;
-		for (auto tim : canbeput) {
-			flag = true;
-			if (firstcls.CheckTimeIllegal(tim))flag = false;
-			//如果是连堂课
-			if (firstcls.duration_) {
-				for (auto i = 1; i < firstcls.duration_; i++) {
-					tmp = make_pair(tim.first, tim.second + i);
-					if (firstcls.CheckTimeIllegal(tmp)) {
-						flag = false;
-						break;
+	else canbeput = firstcls.GetRandAvailTime();
+	//新老结合版本，bfs得到所有的交换序列，pair获得尝试结果
+	//会得到一个2排的数组，0表示当前待交换的节次，1组表示目标需要交换的节次
+	//第一个bool当中true表示成功，所有组都可以进行交换，false表示这个delta不行
+	//解释一下为什么这里是二级指针，因为在系统当中连堂课其实是一次课，而这个在做交换的时候不会在一个队列当中出现两次，
+	//所以我们交换其实是timetable当中的指针的值，所以我们要用二级指针指向timetable当中的一级指针
+	pair<bool, vector<vector<ClassUnit**>>> ret;
+	pair<int, int> delta;
+	for (auto& t : canbeput) {
+		delta = make_pair(firstcls.stime_.first - t.first, firstcls.stime_.second - t.second);
+		ret = GetUnionUnitsVec(&firstcls, delta);
+		if (ret.first)break;
+	}
+	if (ret.first)SwapUnits(ret.second);
+}
+
+
+//以下这两个函数其实在cross当中也是同样适用的
+pair<bool, vector<vector<ClassUnit**>>> Schedule::GetUnionUnitsVec(ClassUnit* firstunitptr, pair<int, int> delta) {
+	//利用bfs获得相应的所有这次需要换的节次
+	//在队列当中的节次表示是能够进行交换的节次，如果在新增过程当中发现不能进行交换的那就返回失败
+	vector<vector<ClassUnit**>> vec(2);
+	//pair<bool, vector<vector<ClassUnit**>>> res(make_pair(false, vec));
+	vector<vector<ClassUnit**>::iterator> it{ vec[0].begin(), vec[1].begin() };
+	//初始化把两个队列的最开始的两个给添加进去
+	//连堂也默认从第一个时间开始，因为后面会进行剩余时间的判断
+	set<ClassUnit**> unitset;
+	bool ret = CheckPutIntoVec(firstunitptr->ttbptr_, firstunitptr->stime_, 0, vec, unitset, delta);
+	if (ret == false)return make_pair(false, vec);
+	ClassUnit **tbptr, *cptr, *tmp;
+	pair<int, int> tim;
+	while (it[0] != vec[0].end() && it[1] != vec[1].end()) {
+		//通过指针指向的节次来添加对应的节次
+		for (auto i = 0; i < 2; i++) {
+			//整个的顺序是先扩展当前的节次，也就是如果当前节次是连堂或者合班那么先把这些课加到当前的队列当中
+			//扩展完当前的节次之后，再在对面添加当前节次的对应节次，再一直向右扩展，一直到队列尾部
+			//然后再到对面队列当中进行以上动作
+			//之所以需要按照以上的运动轨迹是因为要保证在连堂和合班这两个情况当中都能没有bug的运行
+			//而且要保证对应位置的两个指针是正好对应的两个节次
+			//每次扩展的实际操作其实就是获得相应的一个课表的指针，然后装入set当中用来去重
+			while (it[i] != vec[i].end()) {
+				//1.先扩展当前的节次
+				//先判是否是连堂
+				cptr = *(*it[i]);
+				if (cptr != nullptr) {
+					if (cptr->duration_) {
+						for (auto j = 0; j < cptr->duration_; j++) {
+							//这个节次的时间
+							tim = make_pair(cptr->stime_.first, cptr->stime_.second + j);
+							ret = CheckPutIntoVec(cptr->ttbptr_, tim, i, vec, unitset, delta);
+						}
 					}
-				}
-			}
-			else if (!firstcls.union_cls_index_.empty()) {
-				for (auto& c : firstcls.unioncls_) {
-					if (c->CheckTimeIllegal(tim)) {
-						flag = false;
-						break;
+					else if (!cptr->union_cls_index_.empty()) {
+						for (auto j = 0; j < cptr->union_cls_index_.size(); j++) {
+							tmp = cptr->unioncls_[j];
+							ret = CheckPutIntoVec(tmp->ttbptr_, tmp->stime_, i, vec, unitset, delta);
+						}
 					}
+					if (ret == false)return make_pair(false, vec);
 				}
-			}
-			//找到合适的时间
-			if (flag) {
-				tmp = tim;
-				break;
+				it[i]++;
 			}
 		}
 	}
-	SwapClsUnit(firstcls);
+	return make_pair(true, vec);
+}
+
+bool Schedule::CheckPutIntoVec(TimeTable* tbptr, pair<int, int> origin, int pos, vector<vector<ClassUnit**>>& vec, set<ClassUnit**>& unitset, pair<int, int> delta) {
+	ClassUnit** cptr = &(tbptr->roomtable_[origin.first][origin.second]);
+	pair<int, int> opt = GetOpposeTime(pos, origin, delta);
+	//如果这个节次已经被放入了，那么它和它本身对应的节次都已经被放入了，所以不用再继续
+	if (unitset.find(cptr) != unitset.end())return true;
+	//检查这个节次能不能被放到对面
+	if (*cptr == nullptr)return CheckPutIntoVec(tbptr, opt, 1 - pos, vec, unitset, delta);
+	if ((*cptr)->CheckTimeIllegal(opt))return false;
+	vec[pos].push_back(cptr);
+	unitset.insert(cptr);
+	return CheckPutIntoVec(tbptr, opt, 1 - pos, vec, unitset, delta);
+}
+
+
+
+void Schedule::SwapUnits(vector<vector<ClassUnit**>>& units) {
+	
+}
+
+pair<int, int> Schedule::GetOpposeTime(int pos, pair<int, int> tim, pair<int, int> delta) {
+	//s - t = d => t = s - d, s = t + d
+	//s == 0, t == 1
+	if (pos == 0)return pair<int, int>(tim.first - delta.first, tim.second - delta.second);
+	else return pair<int, int>(tim.first + delta.first, tim.second + delta.second);
 }
 
 void Schedule::Cross() {

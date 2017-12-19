@@ -71,6 +71,8 @@ public:
 	bool CheckTimeEmpty(int d, int p);
 	void UpdateRoomPtr();
 	bool CheckTimeIllegal(pair<int, int> tim);//检查这个课的时间是否合理
+	ClassUnit* GetTargetUnit(pair<int, int> tim);//获得同一张表当中目标时间的节次
+	ClassUnit** GetTimeTablePtr(pair<int, int> tim);
 	
 private:
 	default_random_engine e_;
