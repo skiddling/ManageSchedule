@@ -126,15 +126,24 @@ void ClassUnit::UpdateRoomPtr() {
 	}
 }
 
-bool ClassUnit::CheckTimeIllegal(pair<int, int> tim) {
+bool ClassUnit::CheckTimeIllegal(pair<int, int> tim, pair<int, int> opt) {
 	//特判这个是预排的课
-	if (preput_ && tim != pretime_)return true;
-	//这个课在这天上了两次
-	if ((ttbptr_->course_time_)[couptr_->dbid_][tim.first] > 1)return true;
-	//这个老师同时上两节课
-	//这个课被放在了不能排的时间当中
-	if (teacher_->teach_time_[tim.first][tim.second] > 1)return true;
+	if (preput_) {
+		if (tim != pretime_)return true;
+		return false;
+	}
+	//在不能排的时间当中
 	if (canntbeput_.find(make_pair(tim.first, tim.second)) != canntbeput_.end())return true;
+	//这个课其实是自己的时间，也就是检查自己时间是否合理
+	int val = 0;
+	//如果是检查自己当前这个时间段是否是合理的，那么val = 1，如果是检查对换过去的时间是否合理那就是0
+	if (tim == stime_)val = 1;
+	//如果两个节次都是同一个课
+	if (ttbptr_->roomtable_[tim.first][tim.second]->dbid_ == dbid_)return true;
+	//这个课在当天已经上过了
+	if ((ttbptr_->course_time_)[couptr_->dbid_][tim.first] > val)return true;
+	//这个老师同时上两节课
+	if (teacher_->teach_time_[tim.first][tim.second] > val)return true;
 	return false;
 }
 

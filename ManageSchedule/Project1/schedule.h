@@ -52,8 +52,10 @@ private:
 	void GetUnitsAvailableTime();//获得所有节次的能排的时间，其实是不能排的补集
 	void GetTeachTime();//每个老师都获得相应的各自上课时间
 	void GetRoomCourseTime();//每个教室都获得相应的科目上课时间
-	pair<bool, vector<vector<ClassUnit**>>> GetUnionUnitsVec(ClassUnit* firstunitptr, pair<int, int> delta);
+	pair<bool, vector<vector<Node>>> GetUnionUnitsVec(ClassUnit* firstunitptr, pair<int, int> delta);
 	void SwapUnits(vector<vector<ClassUnit**>>& units);
 	pair<int, int> GetOpposeTime(int pos, pair<int, int> tim, pair<int, int> delta);
-	bool CheckPutIntoVec(TimeTable* tbptr, pair<int, int> origin, int pos, vector<vector<ClassUnit**>>& vec, set<ClassUnit**>& unitset, pair<int, int> delta);
+	bool CheckPutIntoVec(TimeTable* tbptr, pair<int, int> origin, int pos, vector<vector<Node>>&vec, set<Node>& unitset, pair<int, int> delta);
+	bool CheckRoomIllegal(TimeTable* tbptr, pair<int, int> origin, pair<int ,int> opt, int cnt);
+	void SwapUnitsVec(vector<vector<Node>> vec);
 };

@@ -22,6 +22,8 @@ using namespace std;
 class ClassUnit;
 class TimeTable;
 
+typedef pair<TimeTable*, pair<int, int>> Node;
+
 class Course
 {
 public:

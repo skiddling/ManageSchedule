@@ -183,7 +183,7 @@ void Schedule::Modify() {
 		//新版本的判断操作
 		for (auto i = 0; i < c.duration_; i++) {
 			tmp = make_pair(c.stime_.first, c.stime_.second + i);
-			if (c.CheckTimeIllegal(tmp)) {
+			if (c.CheckTimeIllegal(c.stime_, tmp)) {
 				//发现需要进行调换	
 				NeedToSwap(c);
 				break;
@@ -210,27 +210,31 @@ void Schedule::NeedToSwap(ClassUnit& firstcls) {
 	//第一个bool当中true表示成功，所有组都可以进行交换，false表示这个delta不行
 	//解释一下为什么这里是二级指针，因为在系统当中连堂课其实是一次课，而这个在做交换的时候不会在一个队列当中出现两次，
 	//所以我们交换其实是timetable当中的指针的值，所以我们要用二级指针指向timetable当中的一级指针
-	pair<bool, vector<vector<ClassUnit**>>> ret;
+	//12.20版本当中交换的内容更具体一些，是pair<TimeTable*, pair<int, int>>，也就是具体指出是哪个课表
+	//和哪个时间进行交换，因为在获得这个队列的过程当中需要进行节次的空间上的判断
+	//pair<bool, vector<vector<ClassUnit**>>> ret;
+	pair<bool, vector<vector<Node>>> ret;
 	pair<int, int> delta;
 	for (auto& t : canbeput) {
 		delta = make_pair(firstcls.stime_.first - t.first, firstcls.stime_.second - t.second);
 		ret = GetUnionUnitsVec(&firstcls, delta);
 		if (ret.first)break;
 	}
-	if (ret.first)SwapUnits(ret.second);
+	//if (ret.first)SwapUnits(ret.second);
+	if (ret.first)SwapUnitsVec(ret.second);
 }
 
-
 //以下这两个函数其实在cross当中也是同样适用的
-pair<bool, vector<vector<ClassUnit**>>> Schedule::GetUnionUnitsVec(ClassUnit* firstunitptr, pair<int, int> delta) {
+pair<bool, vector<vector<Node>>> Schedule::GetUnionUnitsVec(ClassUnit* firstunitptr, pair<int, int> delta) {
 	//利用bfs获得相应的所有这次需要换的节次
 	//在队列当中的节次表示是能够进行交换的节次，如果在新增过程当中发现不能进行交换的那就返回失败
-	vector<vector<ClassUnit**>> vec(2);
+	//typedef pair<ClassUnit*, pair<int, int>> Node;
+	vector<vector<Node>> vec(2);
 	//pair<bool, vector<vector<ClassUnit**>>> res(make_pair(false, vec));
-	vector<vector<ClassUnit**>::iterator> it{ vec[0].begin(), vec[1].begin() };
+	vector<vector<Node>::iterator> it{ vec[0].begin(), vec[1].begin() };
 	//初始化把两个队列的最开始的两个给添加进去
 	//连堂也默认从第一个时间开始，因为后面会进行剩余时间的判断
-	set<ClassUnit**> unitset;
+	set<Node> unitset;
 	bool ret = CheckPutIntoVec(firstunitptr->ttbptr_, firstunitptr->stime_, 0, vec, unitset, delta);
 	if (ret == false)return make_pair(false, vec);
 	ClassUnit **tbptr, *cptr, *tmp;
@@ -247,14 +251,19 @@ pair<bool, vector<vector<ClassUnit**>>> Schedule::GetUnionUnitsVec(ClassUnit* fi
 			while (it[i] != vec[i].end()) {
 				//1.先扩展当前的节次
 				//先判是否是连堂
-				cptr = *(*it[i]);
+				//cptr = *(*it[i]);
+				cptr = (*it[i]).first->roomtable_[(*it[i]).second.first][(*it[i]).second.second];
 				if (cptr != nullptr) {
 					if (cptr->duration_) {
-						for (auto j = 0; j < cptr->duration_; j++) {
-							//这个节次的时间
-							tim = make_pair(cptr->stime_.first, cptr->stime_.second + j);
-							ret = CheckPutIntoVec(cptr->ttbptr_, tim, i, vec, unitset, delta);
+						//如果是同一天的进行交换需要进行特判
+						if (delta.first == 0) {
+								
 						}
+						//for (auto j = 0; j < cptr->duration_; j++) {
+						//	//这个节次的时间
+						//	tim = make_pair(cptr->stime_.first, cptr->stime_.second + j);
+						//	ret = CheckPutIntoVec(cptr->ttbptr_, tim, i, vec, unitset, delta);
+						//}
 					}
 					else if (!cptr->union_cls_index_.empty()) {
 						for (auto j = 0; j < cptr->union_cls_index_.size(); j++) {
@@ -271,17 +280,55 @@ pair<bool, vector<vector<ClassUnit**>>> Schedule::GetUnionUnitsVec(ClassUnit* fi
 	return make_pair(true, vec);
 }
 
-bool Schedule::CheckPutIntoVec(TimeTable* tbptr, pair<int, int> origin, int pos, vector<vector<ClassUnit**>>& vec, set<ClassUnit**>& unitset, pair<int, int> delta) {
-	ClassUnit** cptr = &(tbptr->roomtable_[origin.first][origin.second]);
-	pair<int, int> opt = GetOpposeTime(pos, origin, delta);
-	//如果这个节次已经被放入了，那么它和它本身对应的节次都已经被放入了，所以不用再继续
-	if (unitset.find(cptr) != unitset.end())return true;
-	//检查这个节次能不能被放到对面
-	if (*cptr == nullptr)return CheckPutIntoVec(tbptr, opt, 1 - pos, vec, unitset, delta);
-	if ((*cptr)->CheckTimeIllegal(opt))return false;
-	vec[pos].push_back(cptr);
-	unitset.insert(cptr);
+//这当中需要对节次做时间和空间两个方面的检查
+bool Schedule::CheckPutIntoVec(TimeTable* tbptr, pair<int, int> origin, int pos, vector<vector<Node>>& vec, set<Node>& unitset, pair<int, int> delta) {
+	//先对自己做时间和空间两方面的检查，再检查对方的这两方面
+	auto opt = GetOpposeTime(pos, origin, delta);
+	//auto a = make_pair(tbptr, origin), b = make_pair(tbptr, opt);
+	Node node = make_pair(tbptr, origin);
+	if (unitset.find(node) != unitset.end())return true;
+	ClassUnit *cptr1 = tbptr->roomtable_[origin.first][origin.second], *cptr2 = tbptr->roomtable_[opt.first][opt.second];
+	if (CheckRoomIllegal(tbptr, origin, opt, 0))return false;
+	if (cptr1->CheckTimeIllegal(origin, opt) || cptr2->CheckTimeIllegal(opt, origin))return false;
+	vec[pos].push_back(node);
+	unitset.insert(node);
 	return CheckPutIntoVec(tbptr, opt, 1 - pos, vec, unitset, delta);
+	//ClassUnit** cptr = &(tbptr->roomtable_[origin.first][origin.second]);
+	//pair<int, int> opt = GetOpposeTime(pos, origin, delta);
+	////如果这个节次已经被放入了，那么它和它本身对应的节次都已经被放入了，所以不用再继续
+	//if (unitset.find(cptr) != unitset.end())return true;
+	////检查这个节次能不能被放到对面
+	//if (*cptr == nullptr)return CheckPutIntoVec(tbptr, opt, 1 - pos, vec, unitset, delta);
+	//if ((*cptr)->CheckTimeIllegal(opt))return false;
+	//vec[pos].push_back(cptr);
+	//unitset.insert(cptr);
+	//return CheckPutIntoVec(tbptr, opt, 1 - pos, vec, unitset, delta);
+}
+
+//cnt用来计数次数，这个函数用来检测origin这个节次能不能换到opt
+//这里会特判同一天的节次，也就是对于同一天内的课进行交换的时候，遇到连堂课其实是一种平移
+//而这种平移能否成功其实就是判断交换的两者之间的距离是否足够大，也就是核心公式
+//abs(period1 - period2) >= max(size1, size2)
+//但是做了这种平移之后，在交换的时候这个连堂课就要进行相应的stime的更新
+//更新部分用的是最小交换策略，也就是在同一天的交换的时候只要关注交换位置之后的节次就可以，也就是管尾不管头，头部在修正的时候会进行维护
+//这个函数专门用来检测连堂课用的
+bool Schedule::CheckRoomIllegal(TimeTable * tbptr, pair<int, int> origin, pair<int, int> opt, int cnt) {
+	ClassUnit *cptr1 = tbptr->roomtable_[origin.first][origin.second], *cptr2 = tbptr->roomtable_[opt.first][opt.second];
+	if (cnt == 2)return false;
+	if (cptr1 == nullptr || cptr1->duration_ == 1) {
+		return CheckRoomIllegal(tbptr, opt, origin, cnt + 1);
+	}
+	//有连堂的，先判断是否是同一天的，然后检测连堂的第一节课和最后一节课是否超过时间限制
+	int sz = cptr2 == nullptr ? 0 : cptr2->duration_;
+	if (origin.first == opt.first) {
+		if (abs(origin.second - opt.second) < max(cptr1->duration_, sz))return true;
+	}
+	//判断空间上是否合理
+	if (opt.second < 0 || opt.second >= tbptr->periods_)return true;
+	return CheckRoomIllegal(tbptr, opt, origin, cnt + 1);
+}
+
+void Schedule::SwapUnitsVec(vector<vector<Node>> vec) {
 }
 
 
