@@ -87,12 +87,25 @@ int ClassUnit::GetTimeTableIdInVec() {
 	return ttbptr_->roomid_;
 }
 
-vector<pair<int, int>> ClassUnit::GetRandAvailTime() {
+vector<pair<int, int>> ClassUnit::GetRandAvailTime(int tag) {
 	set<pair<int, int>> tmp = canbeput_;
 	pair<int, int> now{stime_.first, stime_.second};
 	if (tmp.find(now) != tmp.end()) {
 		tmp.erase(tmp.find(now));
 	}
+	vector<pair<int, int>> vec;
+	if (!tmp.empty()) {
+		for (auto p : tmp) {
+			vec.push_back(p);
+		}
+		GetRandSet(vec);
+	}
+	return vec;
+}
+
+vector<pair<int, int>> ClassUnit::GetRandTime() {
+	set<pair<int, int>> tmp = allunits_;
+	tmp.erase(make_pair(stime_.first, stime_.second));
 	vector<pair<int, int>> vec;
 	if (!tmp.empty()) {
 		for (auto p : tmp) {
@@ -126,24 +139,38 @@ void ClassUnit::UpdateRoomPtr() {
 	}
 }
 
-bool ClassUnit::CheckTimeIllegal(pair<int, int> tim, pair<int, int> opt) {
+//要考虑到cross还是modify操作
+//cross 0 ， modify 1
+//还要考虑到是否是连堂课
+//如果是连堂课，那么只会对stime进行判断
+//以下所有情况都是除掉预排课的
+//cross当中不进行时间上的判断
+//modify当中连堂课可以不进行时间上的判断
+//返回true表示非法，false表示合法
+bool ClassUnit::CheckTimeIllegal(pair<int, int> tim, pair<int, int> opt, int tag) {
 	//特判这个是预排的课
 	if (preput_) {
-		if (tim != pretime_)return true;
+		if (opt != pretime_)return true;
 		return false;
 	}
-	//在不能排的时间当中
+	if (tim != stime_) {
+		//连堂课
+		return false;
+	}
+	if (tag == 0) {
+		//cross情况
+		if (opt.second < 0 || opt.second >= ttbptr_->periods_)return true;
+		return false;
+	}
+	//modify情况
 	if (canntbeput_.find(make_pair(tim.first, tim.second)) != canntbeput_.end())return true;
-	//这个课其实是自己的时间，也就是检查自己时间是否合理
-	int val = 0;
-	//如果是检查自己当前这个时间段是否是合理的，那么val = 1，如果是检查对换过去的时间是否合理那就是0
-	if (tim == stime_)val = 1;
-	//如果两个节次都是同一个课
-	if (ttbptr_->roomtable_[tim.first][tim.second]->dbid_ == dbid_)return true;
-	//这个课在当天已经上过了
-	if ((ttbptr_->course_time_)[couptr_->dbid_][tim.first] > val)return true;
-	//这个老师同时上两节课
-	if (teacher_->teach_time_[tim.first][tim.second] > val)return true;
+	//非连堂课
+	if (duration_ = 1) {
+		//这个课在当天已经上过了
+		if ((ttbptr_->course_time_)[couptr_->dbid_][opt.first] > 0)return true;
+		//这个老师同时上两节课
+		if (teacher_->teach_time_[opt.first][opt.second] > 0)return true;
+	}
 	return false;
 }
 
@@ -153,6 +180,25 @@ ClassUnit * ClassUnit::GetTargetUnit(pair<int, int> tim) {
 
 ClassUnit ** ClassUnit::GetTimeTablePtr(pair<int, int> tim) {
 	return &(ttbptr_->roomtable_[tim.first][tim.second]);
+}
+
+int ClassUnit::GetCrash() {
+	return CheckTimeCrash() ? 1 : 0;
+}
+
+bool ClassUnit::CheckTimeCrash() {
+	//特判这个是预排的课
+	if (preput_) {
+		if (stime_ != pretime_)return true;
+		return false;
+	}
+	//在不能排的时间当中
+	if (canntbeput_.find(make_pair(stime_.first, stime_.second)) != canntbeput_.end())return true;
+	//这个课一天上了两次
+	if ((ttbptr_->course_time_)[couptr_->dbid_][stime_.first] > 1)return true;
+	//这个老师同时上两节课
+	if (teacher_->teach_time_[stime_.first][stime_.second] > 1)return true;
+	return false;
 }
 
 void ClassUnit::GetRandSet(vector<pair<int, int>>& randset) {

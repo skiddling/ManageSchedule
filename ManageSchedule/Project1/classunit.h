@@ -41,15 +41,19 @@ public:
 	//与canntbeput是补集，最终在modify的时候这个只是一个当中的参与集合，另外一个是教师的时间
 	//新版本这里得到这个集合是采用的暴力求交集的方法
 	set<pair<int, int>> canbeput_;
+
+	set<pair<int, int>> allunits_;//存放了所有的时间
 	
 	//方便课表初始化操作
 	bool operator < (const ClassUnit& c)const {
-		if (duration_ + union_cls_index_.size() != c.duration_ + c.union_cls_index_.size())
-			return duration_ + union_cls_index_.size() > c.duration_ + c.union_cls_index_.size();
-		/*else if (unioclsid_.size() != c.unioclsid_.size())
-			return unioclsid_.size() > c.unioclsid_.size();*/
-		else if (canntbeput_.size() != c.canntbeput_.size())
-			return canntbeput_.size() > c.canntbeput_.size();
+		if (preput_ != c.preput_)
+			return preput_ > c.preput_;
+		else if (canbeput_.size() != canbeput_.size())
+			return canbeput_.size() > c.canbeput_.size();
+		else if (duration_ != c.duration_)
+			return duration_ > c.duration_;
+		else if (unioclsid_.size() != c.unioclsid_.size())
+			return unioclsid_.size() > c.unioclsid_.size();
 		else if (dbid_ != c.dbid_)
 			return dbid_ < c.dbid_;
 		else if (secionno_ != c.secionno_)
@@ -64,16 +68,21 @@ public:
 	int CalFitness();
 	int GetTeacherIdInVec();
 	int GetTimeTableIdInVec();
+	//用于modify，tag表示的是否是连堂课，modify当中需要对连堂课进行稍微的放宽
 	vector<pair<int, int>> GetRandAvailTime();
+	//用于cross
+	vector<pair<int, int>> GetRandTime();
 	bool CheckPeriod(pair<int, int> per);
 	void ChangeTime(pair<int, int> period);
 	//初始化的时候检查这个时间段是否有空
 	bool CheckTimeEmpty(int d, int p);
 	void UpdateRoomPtr();
-	bool CheckTimeIllegal(pair<int, int> tim, pair<int, int> opt);//检查这节课去这个时间是否合理
+	bool CheckTimeIllegal(pair<int, int> tim, pair<int, int> opt, int tag);//检查这节课去这个时间是否合理
 	ClassUnit* GetTargetUnit(pair<int, int> tim);//获得同一张表当中目标时间的节次
 	ClassUnit** GetTimeTablePtr(pair<int, int> tim);
-	
+	int GetCrash();
+	bool CheckTimeCrash();
+
 private:
 	default_random_engine e_;
 	string teaname_, couname_;
