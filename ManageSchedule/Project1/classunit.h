@@ -2,10 +2,12 @@
 #include "teacher.h"
 
 class TimeTable;
+class Schedule;
 
 class ClassUnit
 {
 public:
+	int crash_;//记录这个是不是冲突的课程
 	//data get from datebase
 	int secionno_ = -1;//这节课的序号
 	long long pkcombinateclassgroup_ = -1;//合班的组号，一起合班的课当做一个组有一个共同的组号
@@ -20,6 +22,7 @@ public:
 	Course* couptr_;
 	Teacher* teacher_;//这节课的任课老师的指针
 	TimeTable* ttbptr_;//指向自己所在课表的指针，这个是要在赋值的时候修改的
+	Schedule* scptr_;//用于监视变量
 
 	pair<int, int> stime_ = make_pair(-1, -1);//具体这节课的起始时间
 	bool hasbeenput_ = false;//表示这节课是否已经被放到课表当中，用于课表初始化
@@ -48,12 +51,12 @@ public:
 	bool operator < (const ClassUnit& c)const {
 		if (preput_ != c.preput_)
 			return preput_ > c.preput_;
-		else if (canbeput_.size() != canbeput_.size())
-			return canbeput_.size() > c.canbeput_.size();
 		else if (duration_ != c.duration_)
 			return duration_ > c.duration_;
 		else if (unioclsid_.size() != c.unioclsid_.size())
 			return unioclsid_.size() > c.unioclsid_.size();
+		else if (canbeput_.size() != canbeput_.size())
+			return canbeput_.size() > c.canbeput_.size();
 		else if (dbid_ != c.dbid_)
 			return dbid_ < c.dbid_;
 		else if (secionno_ != c.secionno_)

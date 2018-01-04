@@ -63,15 +63,25 @@ void TimeTable::Init() {
 bool TimeTable::PutIntoTable(ClassUnit * cptr) {
 	//把这节课放到课表当中去
 	//如果尝试了所有空余的节次都无法把这个课放入到合适的时间那么就认为无法为课表初始化，直接失败
+	if (cptr->preput_) {
+		cptr->PutIntoTable(cptr->pretime_.first, cptr->pretime_.second, true);
+		if (pp == periods_ - 1 && pd == days_ - 1){
+			pp == periods_;
+			pd = days_;
+		}
+		else if (cptr->pretime_.first == pp && cptr->pretime_.second == pd) {
+			do{
+				pd = (pd + 1) % days_;
+				if (pd == 0)pp++;
+			}while (roomtable_[pd][pp] != nullptr);
+		}
+		return true;
+	}
 	int i = pp, j = pd;
 	for (; i < periods_; i++) {
 		for (; j < days_; j++) {
 			if ((roomtable_[j][i] == nullptr) && cptr->PutIntoTable(j, i, true)) {
 				//更新pp和pd
-				/*if (i == pp && j == pd) {
-					pd = (j + 1) % days_;
-					if(pd == 0)pp = (i + 1) % periods_;
-				}*/
 				if (pp == periods_ - 1 && pd == days_ - 1){
 					pp == periods_;
 					pd = days_;
@@ -82,15 +92,6 @@ bool TimeTable::PutIntoTable(ClassUnit * cptr) {
 						if (pd == 0)pp++;
 					}while (roomtable_[pd][pp] != nullptr);
 				}
-				////更新表
-				//这个操作在unit当中完成
-				//for (auto k = 0; k < cptr->duration_; k++) {
-				//	roomtable_[i][j + k] = cptr;
-				//}
-				////更新head指针
-				//if (cptr->duration_ > 1) {
-				//	cptr->headptr_ = &roomtable_[i][j];
-				//}
 				return true;
 			}
 		}
@@ -98,6 +99,8 @@ bool TimeTable::PutIntoTable(ClassUnit * cptr) {
 	}
 	return false;
 }
+
+
 
 void TimeTable::UpdatePtrs() {
 	/*

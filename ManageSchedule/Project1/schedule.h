@@ -13,7 +13,7 @@ public:
 	vector<Teacher> teachers_;//所有的教师的实体
 	vector<TimeTable> timetables_;//所有的班级课表，相当于是一个指针容器
 	vector<Course> couque_;
-	int outtime_;
+	int outtime_ = 20;
 	int crash_;
 	const double mxpocross_ = 0.2;
 
@@ -61,4 +61,5 @@ private:
 	bool CheckPutIntoVec(TimeTable* tbptr, pair<int, int> origin, int pos, vector<vector<Node>>&vec, set<Node>& unitset, pair<int, int> delta, int tag);
 	bool CheckRoomIllegal(TimeTable* tbptr, pair<int, int> origin, pair<int ,int> opt, int cnt);
 	void SwapUnitsVec(vector<vector<Node>> vec);
+	void UpdateUnitPrt(TimeTable* ttbptr, pair<int, int> ori, pair<int, int> opt);
 };

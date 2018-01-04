@@ -16,7 +16,8 @@ public:
 
 private:
 	int num_of_threads_;
-	const int thread_schedule_size_ = 5;
+	//const int thread_schedule_size_ = 1;
+	int thread_schedule_size_;
 	//实体对象
 	vector<Schedule> schedules_;
 	void GetSchedule(int thid, InterruptibleThread* t, future<Schedule>* fut);

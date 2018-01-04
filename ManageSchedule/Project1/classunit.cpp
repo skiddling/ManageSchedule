@@ -1,5 +1,6 @@
 #include "ClassUnit.h"
 #include "timetable.h"
+#include "schedule.h"
 
 ClassUnit::ClassUnit(TimeTable* ttb, Teacher* teacher, Course* couptr):
 	ttbptr_(ttb), teacher_(teacher), couptr_(couptr){
@@ -48,7 +49,8 @@ bool ClassUnit::PutIntoTable(int day, int period, bool flag) {
 	//判断是否是连堂课
 	else if (duration_ > 1) {
 		for (auto i = 1; i < duration_; i++) {
-			if (ttbptr_->roomtable_[day][period + i] != nullptr)return false;
+			if (ttbptr_->roomtable_[day][period + i] != nullptr)
+				return false;
 		}
 		for (auto i = 1; i < duration_; i++) {
 			ttbptr_->roomtable_[day][period + i] = this;
@@ -60,6 +62,7 @@ bool ClassUnit::PutIntoTable(int day, int period, bool flag) {
 	ttbptr_->roomtable_[day][period] = this;
 	stime_ = make_pair(day, period);
 	teacher_->AddClsInPeriod(day, period);
+	return true;
 }
 
 int ClassUnit::CalFitness() {
@@ -87,7 +90,7 @@ int ClassUnit::GetTimeTableIdInVec() {
 	return ttbptr_->roomid_;
 }
 
-vector<pair<int, int>> ClassUnit::GetRandAvailTime(int tag) {
+vector<pair<int, int>> ClassUnit::GetRandAvailTime() {
 	set<pair<int, int>> tmp = canbeput_;
 	pair<int, int> now{stime_.first, stime_.second};
 	if (tmp.find(now) != tmp.end()) {
@@ -154,23 +157,32 @@ bool ClassUnit::CheckTimeIllegal(pair<int, int> tim, pair<int, int> opt, int tag
 		return false;
 	}
 	if (tim != stime_) {
-		//连堂课
+		//非连堂课的第一节课
 		return false;
 	}
+	//时间不合符空间
+	if (opt.second < 0 || opt.second >= ttbptr_->periods_)return true;
 	if (tag == 0) {
 		//cross情况
-		if (opt.second < 0 || opt.second >= ttbptr_->periods_)return true;
 		return false;
 	}
 	//modify情况
 	if (canntbeput_.find(make_pair(tim.first, tim.second)) != canntbeput_.end())return true;
 	//非连堂课
-	if (duration_ = 1) {
+	//判断是否对换的是同一个课
+
+	int val = 0;
+	if (ttbptr_->roomtable_[opt.first][opt.second] != nullptr) {
+		if ((ttbptr_->roomtable_[opt.first][opt.second]->couptr_->dbid_) == dbid_)
+			val = 1;
+	}
+	//if((ttbptr_->roomtable_[opt.first][opt.second]->couptr_->dbid_) == dbid_ ? 1 : 0;
+	//if (duration_ = 1) {
 		//这个课在当天已经上过了
-		if ((ttbptr_->course_time_)[couptr_->dbid_][opt.first] > 0)return true;
+		if ((ttbptr_->course_time_)[couptr_->dbid_][opt.first] > val)return true;
 		//这个老师同时上两节课
 		if (teacher_->teach_time_[opt.first][opt.second] > 0)return true;
-	}
+	//}
 	return false;
 }
 
@@ -183,7 +195,12 @@ ClassUnit ** ClassUnit::GetTimeTablePtr(pair<int, int> tim) {
 }
 
 int ClassUnit::GetCrash() {
-	return CheckTimeCrash() ? 1 : 0;
+	//return CheckTimeCrash() ? 1 : 0;
+	if (CheckTimeCrash()) {
+		crash_ = 1;
+	}
+	else crash_ = 0;
+	return crash_;
 }
 
 bool ClassUnit::CheckTimeCrash() {
@@ -197,7 +214,9 @@ bool ClassUnit::CheckTimeCrash() {
 	//这个课一天上了两次
 	if ((ttbptr_->course_time_)[couptr_->dbid_][stime_.first] > 1)return true;
 	//这个老师同时上两节课
-	if (teacher_->teach_time_[stime_.first][stime_.second] > 1)return true;
+	for (auto i = 0; i < duration_; i++) {
+		if (teacher_->teach_time_[stime_.first][stime_.second + i] > 1)return true;
+	}
 	return false;
 }
 

@@ -1,7 +1,7 @@
 #include "schedule.h"
 #include "InterruptibleThread.h"
 
-int flag;
+int flag = 1;
 mutex mtx;
 
 Schedule::Schedule(){
@@ -20,6 +20,7 @@ Schedule::Schedule(vector<Course> couque, vector<Teacher> teachers, vector<TimeT
 		clsque_[i].allunits_ = allunits_;
 	}
 }
+
 
 Schedule::Schedule(const Schedule& s):
 	crash_(s.crash_), 
@@ -53,21 +54,33 @@ void Schedule::GetSchedule(InterruptibleThread * t, future<Schedule>* fut) {
 	while (true) {
 		t2 = chrono::system_clock::now();
 		CalFitness();
+		cout << "thread id is " << this_thread::get_id() << " carsh is " << crash_ << endl;
 		if (crash_ == 0) {
+			flag = 2;
 			break;
 		}
+		//cout << "end of first if statement" << endl;
+
 		if (t2 - t1 > dur) {
+			flag = 1;
 			break;
 		}
+		//cout << "end of second if statement" << endl;
 		try {
 			interruption_point();
+			//cout << "end of try" << endl;
 		}
 		catch(const thread_interrupted& interrupt){
+			flag = 0;
 			break;
 		}
+		//cout << "start cross" << endl;
 		Cross();
+		//cout << "thread id is " << this_thread::get_id() << " end of cross" << endl;
 		CalFitness();
+		//cout << "start modify" << endl;
 		Modify();
+		//cout << "thread id is " << this_thread::get_id() << " end of modify" << endl;
 	}
 	if (flag) {
 		mtx.lock();
@@ -126,12 +139,13 @@ bool Schedule::init() {
 	//2.然后安排每节课的时间
 	int i = 0;
 	for (auto& c : clsque_) {
+		i++;
+		cout << i << endl;
+		c.scptr_ = this;
 		if ((c.hasbeenput_ == false) && !(c.ttbptr_->PutIntoTable(&c))) {
 			cout << "false unit " << i << endl;
 			return false;
 		}
-		i++;
-		cout << i << endl;
 	}
 	GetUnitsAvailableTime();
 	GetTeachTime();
@@ -178,12 +192,11 @@ void Schedule::CalFitness() {
 	/*
 	检查每节课是否都符合要求
 	*/
-	//for (auto& c : clsque_)
-	//	crash_ += c.CalFitness();
 	crash_ = 0;
 	for (auto& c : clsque_) {
 		crash_ += c.GetCrash();
 	}
+	cout << "end of get crash" << endl;
 }
 
 
@@ -255,7 +268,8 @@ pair<bool, vector<vector<Node>>> Schedule::GetUnionUnitsVec(ClassUnit* firstunit
 	//typedef pair<ClassUnit*, pair<int, int>> Node;
 	vector<vector<Node>> vec(2);
 	//pair<bool, vector<vector<ClassUnit**>>> res(make_pair(false, vec));
-	vector<vector<Node>::iterator> it{ vec[0].begin(), vec[1].begin() };
+	//vector<vector<Node>::iterator> it{ vec[0].begin(), vec[1].begin() };
+	vector<int> it{0, 0};
 	//初始化把两个队列的最开始的两个给添加进去
 	//连堂也默认从第一个时间开始，因为后面会进行剩余时间的判断
 	set<Node> unitset;
@@ -263,7 +277,8 @@ pair<bool, vector<vector<Node>>> Schedule::GetUnionUnitsVec(ClassUnit* firstunit
 	if (ret == false)return make_pair(false, vec);
 	ClassUnit **tbptr, *cptr, *tmp;
 	pair<int, int> tim;
-	while (it[0] != vec[0].end() && it[1] != vec[1].end()) {
+	//while (it[0] != vec[0].end() && it[1] != vec[1].end()) {
+	while (it[0] < vec[0].size() && it[1] < vec[1].size()) {
 		//通过指针指向的节次来添加对应的节次
 		for (auto i = 0; i < 2; i++) {
 			//整个的顺序是先扩展当前的节次，也就是如果当前节次是连堂或者合班那么先把这些课加到当前的队列当中
@@ -273,11 +288,13 @@ pair<bool, vector<vector<Node>>> Schedule::GetUnionUnitsVec(ClassUnit* firstunit
 			//而且要保证对应位置的两个指针是正好对应的两个节次
 			//每次扩展的实际操作其实就是获得相应的一个课表的指针，然后装入set当中用来去重
 			//对于连堂课，我们只会对stime对应的opt进行检查，而其他时间段的不会进行检查
-			while (it[i] != vec[i].end()) {
+			//while (it[i] != vec[i].end()) {
+			while (it[i] < vec[i].size()) {
 				//1.先扩展当前的节次
 				//先判是否是连堂
 				//cptr = *(*it[i]);
-				cptr = (*it[i]).first->roomtable_[(*it[i]).second.first][(*it[i]).second.second];
+				//cptr = (*it[i]).first->roomtable_[(*it[i]).second.first][(*it[i]).second.second];
+				cptr = (vec[i][it[i]]).first->roomtable_[(vec[i][it[i]]).second.first][(vec[i][it[i]]).second.second];
 				if (cptr != nullptr) {
 					//如果是连堂课
 					if (cptr->duration_) {
@@ -311,20 +328,25 @@ pair<bool, vector<vector<Node>>> Schedule::GetUnionUnitsVec(ClassUnit* firstunit
 //这当中需要对节次做时间和空间两个方面的检查
 //最终规则就是连堂课只能进行不同天的交换，而非连堂课的可以进行任意时间段的交换
 //这里要考虑到cross还是modify操作
+//return false 表示不行，true表示可以
 bool Schedule::CheckPutIntoVec(TimeTable* tbptr, pair<int, int> origin, int pos, vector<vector<Node>>& vec, set<Node>& unitset, pair<int, int> delta, int tag) {
-	//连堂课必须进行不同天的交换
-	if (tbptr->roomtable_[origin.first][origin.second]->duration_ && delta.first == 0)return false;
-	//先对自己做时间和空间两方面的检查，再检查对方的这两方面
-	auto opt = GetOpposeTime(pos, origin, delta);
-	//auto a = make_pair(tbptr, origin), b = make_pair(tbptr, opt);
+	ClassUnit *cptr = tbptr->roomtable_[origin.first][origin.second];
 	Node node = make_pair(tbptr, origin);
 	if (unitset.find(node) != unitset.end())return true;
-	ClassUnit *cptr1 = tbptr->roomtable_[origin.first][origin.second], *cptr2 = tbptr->roomtable_[opt.first][opt.second];
-	//最终版本不再做空间的检查
-	//检查空间是否符合要求
-	//if (CheckRoomIllegal(tbptr, origin, opt, 0))return false;
-	//if (cptr1->CheckTimeIllegal(origin, opt, tag) || cptr2->CheckTimeIllegal(opt, origin, tag))return false;
-	if (cptr1->CheckTimeIllegal(origin, opt, tag))return false;
+	auto opt = GetOpposeTime(pos, origin, delta);
+	if (cptr != nullptr) {
+		//预排不能换
+		if (cptr->preput_)return false;
+		//连堂课必须进行不同天的交换
+		if (cptr->duration_ > 1 && delta.first == 0)return false;
+		//先对自己做时间和空间两方面的检查，再检查对方的这两方面
+		//auto a = make_pair(tbptr, origin), b = make_pair(tbptr, opt);
+		//最终版本不再做空间的检查
+		//检查空间是否符合要求
+		//if (CheckRoomIllegal(tbptr, origin, opt, 0))return false;
+		//if (cptr1->CheckTimeIllegal(origin, opt, tag) || cptr2->CheckTimeIllegal(opt, origin, tag))return false;
+		if (cptr->CheckTimeIllegal(origin, opt, tag))return false;
+	}
 	vec[pos].push_back(node);
 	unitset.insert(node);
 	return CheckPutIntoVec(tbptr, opt, 1 - pos, vec, unitset, delta, tag);
@@ -371,7 +393,23 @@ void Schedule::SwapUnitsVec(vector<vector<Node>> vec) {
 		ttbptr = vec[0][i].first;
 		ori = vec[0][i].second;
 		opt = vec[1][i].second;
+		UpdateUnitPrt(ttbptr, vec[0][i].second, vec[1][i].second);
+		UpdateUnitPrt(ttbptr, vec[1][i].second, vec[0][i].second);
 		swap(ttbptr->roomtable_[ori.first][ori.second], ttbptr->roomtable_[opt.first][opt.second]);
+	}
+}
+
+void Schedule::UpdateUnitPrt(TimeTable * ttbptr, pair<int, int> ori, pair<int, int> opt) {
+	auto unitptr = ttbptr->roomtable_[ori.first][ori.second];
+	//连堂课判断
+	if (unitptr != nullptr) {
+		unitptr->teacher_->teach_time_[ori.first][ori.second]--;
+		unitptr->teacher_->teach_time_[opt.first][opt.second]++;
+
+		if(unitptr->duration_ > 1 && unitptr->stime_ != ori)return;
+		(ttbptr->course_time_)[unitptr->couptr_->dbid_][ori.first]--;
+		(ttbptr->course_time_)[unitptr->couptr_->dbid_][opt.first]++;
+		unitptr->stime_ = opt;
 	}
 }
 
@@ -394,11 +432,16 @@ void Schedule::Cross() {
 	*/
 	double cp;
 	uniform_real_distribution<double> u(0.0, 1.0);
-	for (auto& c : clsque_) {
+	//for (auto& c : clsque_) {
+	//cout << clsque_.size() << endl;
+	for(auto i = 0; i < clsque_.size(); i++){
 		cp = u(e_);
+		//cout << i << " " << cp << endl;
 		if (cp < mxpocross_) {
 			//SwapClsUnit(c);
-			NeedToSwap(c, 0);
+			//cout << "start cross " << i << endl;
+			NeedToSwap(clsque_[i], 0);
+			//cout << "end cross " << i << endl;
 		}
 	}
 

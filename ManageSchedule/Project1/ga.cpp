@@ -15,6 +15,7 @@ GA::GA(vector<Course> courses, vector<Teacher> teachers, vector<TimeTable> timet
 	res_.UpdatePtrs();
 	res_.init();
 	num_of_threads_ = 1;
+	thread_schedule_size_ = 1;
 	//num_of_threads_ = thread::hardware_concurrency();
 	//生成一个初步的课表res_，然后通过拷贝到相应的各个具体课表当中去
 	//schedule copy construction 
@@ -67,9 +68,10 @@ void GA::OutPutRes() {
 	for (auto& t : res_.timetables_) {
 		for (auto i = 0; i < t.roomtable_.size(); i++) {
 			for (auto j = 0; j < t.roomtable_[i].size(); j++) {
-				if (t.roomtable_[i][j] != NULL) {
+				if (t.roomtable_[i][j] != nullptr) {
 					fout << t.roomtable_[i][j]->teacher_ << "  " << t.roomtable_[i][j]->GetCouName() << "         ";
 				}
+				else fout << string(" ", 11);
 			}
 			cout << endl;
 		}
