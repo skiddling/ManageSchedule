@@ -198,7 +198,8 @@
 int main(int argc, char* argv[]) {
 	//srand((unsigned int)time(0));
 	Dbutils db;
-	db.StartPk();
+	//db.StartPk();
+	db.StartPk(argv[1]);
 	//db.GetDBData(argv, teachersmap, coursesmap, teachers, courses, timetables);
 	//system("PAUSE");
 	//return 0;
@@ -210,7 +211,9 @@ int main(int argc, char* argv[]) {
 	cout << "end of init\n";
 	GA ga(db.couque_, db.teaque_, db.roomque_, db.clsque_);
 	ga.GenerateTable();
-	ga.OutPutRes();
+	//ga.OutPutRes();
+	db.res_ = ga.res_;
+	db.OutPutResult();
 	//system("PAUSE");
 	//return 0;
 	//GA ga(teachersmap, coursesmap, teachers, classunits, courses, timetables);

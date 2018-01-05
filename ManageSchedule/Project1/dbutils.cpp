@@ -23,11 +23,6 @@ string Dbutils::StartPk(string pktaskid) {
 	GetDataFromTable(&Dbutils::Get_T_PKTeacherNonSection, "T_PKTeacherNonSection");
 	GetDataFromTable(&Dbutils::Get_T_PKCourseNonSection, "T_PKCourseNonSection");
 
-	//因为这里系统当中明确连堂不和合班同时发生
-	//判断是否有合班的情况
-	if (!unionclstab_.empty()) {
-		UpdateUnionCls();
-	}
 	//判断是否有连堂的情况
 	//这个部分是重点，因为之前生成了所有对的教学班
 	//然后这里有很多教学班会因为连堂的关系需要被删除
@@ -41,6 +36,12 @@ string Dbutils::StartPk(string pktaskid) {
 	sort(clsque_.begin(), clsque_.end());
 	//节次排序之后需要再将节次的index给到相应的教室，教师，科目的队列当中去
 	UpdateQueIndex();
+	//因为这里系统当中明确连堂不和合班同时发生
+	//判断是否有合班的情况
+	if (!unionclstab_.empty()) {
+		UpdateUnionCls();
+	}
+
 	return statement_;
 }
 
@@ -85,9 +86,6 @@ string Dbutils::StartPk() {
 	//节次排序之后需要再将节次的index给到相应的教室，教师，科目的队列当中去
 	UpdateQueIndex();
 	return statement_;
-}
-
-void Dbutils::OutPutResult() {
 }
 
 void Dbutils::CutString(string & s) {
@@ -341,9 +339,10 @@ void Dbutils::Get_T_PKClassCourseOrgSectionSet(_RecordsetPtr & m_pRecordset) {
 		}
 		if (sfcombinate) {
 			//已经合班了，这里合班和连堂认为是不能同时发生的条件
+			//因为后期会有一个sort，所以导致index会改变，所以最后的index都需要重新设置
 			pkcombinateclassgroup = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkCombinateClassGroup"))->Value);
 			clsque_[unitstab_[pkclasscourse][secionno]].pkcombinateclassgroup_ = pkcombinateclassgroup;
-			unionclstab_[pkcombinateclassgroup].push_back(unitstab_[pkclasscourse][secionno]);
+			//unionclstab_[pkcombinateclassgroup].push_back(unitstab_[pkclasscourse][secionno]);
 		}
 		m_pRecordset->MoveNext();
 	}
@@ -431,6 +430,7 @@ void Dbutils::Get_T_PKCourseNonSection(_RecordsetPtr & m_pRecordset) {
 }
 
 void Dbutils::UpdateUnionCls() {
+	//unionclstab_.clear();
 	//将每个合班的节次都联系起来
 	//暴力更新所有合班课的班级数组下标
 	for (auto i = 0; i < clsque_.size(); i++) {
@@ -490,7 +490,31 @@ void Dbutils::UpdateQueIndex() {
 		clsque_[i].teacher_->clsqueindex_.push_back(i);
 		clsque_[i].ttbptr_->clsqueindex_.push_back(i);
 	}
-	
 	cout << "end of update index and union units" << endl;
 }
+
+void Dbutils::OutPutResult() {
+	GetDataFromTable(&Dbutils::Put_T_PkclassCourseSection, "T_PkclassCourseSection");
+}
+
+void Dbutils::Put_T_PkclassCourseSection(_RecordsetPtr & m_pRecordset) {
+	string tmp = pktaskid_;
+	_variant_t var = static_cast<_variant_t>(tmp.c_str());
+	for(auto c : res_.clsque_){
+		for (auto i = 0; i < c.duration_; i++) {
+			m_pRecordset->AddNew();
+			m_pRecordset->PutCollect("weekday", c.stime_.first);
+			m_pRecordset->PutCollect("section", c.stime_.second + i);
+			m_pRecordset->PutCollect("pkClassCourse", c.dbid_);
+			m_pRecordset->PutCollect("pkTeacher", c.teacher_->dbid_);
+			m_pRecordset->PutCollect("pkClass", c.ttbptr_->dbid_);
+			m_pRecordset->PutCollect("pkTaskId", var);
+		}
+	}
+	m_pRecordset->Update();
+	m_pRecordset->Close();
+}
+
+
+
 

@@ -16,7 +16,7 @@ public:
 
 private:
 	mutex _mtx;
-	bool _set = false;
+	bool _set;
 };
 
 

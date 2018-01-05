@@ -44,6 +44,7 @@ void GA::GenerateTable() {
 
 	if (fut.wait_for(dur) == future_status::ready) {
 		res_ = fut.get();
+		cout << "crash_ is " << res_.crash_ << endl;
 		for (auto& t : threads) {
 			t.interrupt();
 			t.join();
@@ -66,16 +67,17 @@ void GA::GenerateTable() {
 void GA::OutPutRes() {
 	ofstream fout("result.txt");
 	for (auto& t : res_.timetables_) {
+		fout << endl << endl;
 		for (auto i = 0; i < t.roomtable_.size(); i++) {
 			for (auto j = 0; j < t.roomtable_[i].size(); j++) {
 				if (t.roomtable_[i][j] != nullptr) {
-					fout << t.roomtable_[i][j]->teacher_ << "  " << t.roomtable_[i][j]->GetCouName() << "         ";
+					fout << t.roomtable_[i][j]->teacher_->dbname_ << "  " << t.roomtable_[i][j]->couptr_->course_name_ << "         ";
 				}
-				else fout << string(" ", 11);
+				else fout << "           ";
 			}
-			cout << endl;
+			fout << endl;
 		}
-		cout << endl << endl;
+		fout << endl << endl;
 	}
 	fout.close();
 }

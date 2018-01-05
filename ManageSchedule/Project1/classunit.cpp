@@ -167,7 +167,8 @@ bool ClassUnit::CheckTimeIllegal(pair<int, int> tim, pair<int, int> opt, int tag
 		return false;
 	}
 	//modify情况
-	if (canntbeput_.find(make_pair(tim.first, tim.second)) != canntbeput_.end())return true;
+	//if (canntbeput_.find(make_pair(tim.first, tim.second)) != canntbeput_.end())return true;
+	if (canntbeput_.find(make_pair(opt.first, opt.second)) != canntbeput_.end())return true;
 	//非连堂课
 	//判断是否对换的是同一个课
 
@@ -177,12 +178,12 @@ bool ClassUnit::CheckTimeIllegal(pair<int, int> tim, pair<int, int> opt, int tag
 			val = 1;
 	}
 	//if((ttbptr_->roomtable_[opt.first][opt.second]->couptr_->dbid_) == dbid_ ? 1 : 0;
-	//if (duration_ = 1) {
+	if (duration_ = 1) {
 		//这个课在当天已经上过了
 		if ((ttbptr_->course_time_)[couptr_->dbid_][opt.first] > val)return true;
 		//这个老师同时上两节课
 		if (teacher_->teach_time_[opt.first][opt.second] > 0)return true;
-	//}
+	}
 	return false;
 }
 

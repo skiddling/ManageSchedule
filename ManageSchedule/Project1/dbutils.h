@@ -6,6 +6,7 @@
 class Dbutils
 {
 public:
+	Schedule res_;//用于存放最后的排课结果
 	void GetDBData(char* argv[], map<string, int> &teachersmap, map<string, int> &coursesmap, vector<Teacher> &teachers, vector<Course> &courses, vector<TimeTable> &timetables);
 	void OutPutPKTeaching(Schedule res);
 	//void StartPK();
@@ -48,7 +49,7 @@ public:
 	//通过具体教学班，具体节次序号来找到相应的某一个节课
 	map<long long, map<int, int>> unitstab_;
 
-	//合班的组号
+	//合班的组号，在排序后进行生成相应的信息
 	map<long long, vector<int>> unionclstab_;
 	
 	//连堂课的组号，需要通过这部分来进行数据库当中的数据和算法当中一次课的数据的统一
@@ -96,6 +97,7 @@ private:
 	void UpdateUnionCls();
 	void UpdateContinueCls();
 	void UpdateQueIndex();
+	void Put_T_PkclassCourseSection(_RecordsetPtr& m_pRecordset);
 };
 
 

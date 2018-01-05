@@ -13,9 +13,9 @@ public:
 	vector<Teacher> teachers_;//所有的教师的实体
 	vector<TimeTable> timetables_;//所有的班级课表，相当于是一个指针容器
 	vector<Course> couque_;
-	int outtime_ = 20;
+	int outtime_ = 3;
 	int crash_;
-	const double mxpocross_ = 0.2;
+	const double mxpocross_ = 0;
 
 	Schedule();
 	Schedule(vector<Course> couque, vector<Teacher> teachers, 
