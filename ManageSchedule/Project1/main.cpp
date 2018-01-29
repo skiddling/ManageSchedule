@@ -214,6 +214,7 @@ int main(int argc, char* argv[]) {
 	//ga.OutPutRes();
 	db.res_ = ga.res_;
 	db.OutPutResult();
+	//cout << "hello world" << endl;
 	//system("PAUSE");
 	//return 0;
 	//GA ga(teachersmap, coursesmap, teachers, classunits, courses, timetables);

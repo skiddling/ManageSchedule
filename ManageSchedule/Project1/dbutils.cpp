@@ -31,53 +31,10 @@ string Dbutils::StartPk(string pktaskid) {
 		UpdateContinueCls();
 	}
 
-	//此处需要更新连堂和合班这两个集合当中所有节次的信息
-	//对节次进行一个排序，方便进行课表在初始化的时候的操作
-	sort(clsque_.begin(), clsque_.end());
-	//节次排序之后需要再将节次的index给到相应的教室，教师，科目的队列当中去
-	UpdateQueIndex();
-	//因为这里系统当中明确连堂不和合班同时发生
 	//判断是否有合班的情况
 	if (!unionclstab_.empty()) {
-		UpdateUnionCls();
-	}
-
-	return statement_;
-}
-
-string Dbutils::StartPk() {
-	//pktaskid_ = pktaskid;
-	pktaskid_ = "1";
-	statement_ = "";
-	GetDBInfo();
-	GetDataFromTable(&Dbutils::Get_T_PKTask, "T_PKTask");
-	GetDataFromTable(&Dbutils::Get_T_PKCourse, "T_PKCourse");
-	GetDataFromTable(&Dbutils::Get_T_PKTeacher, "T_PKTeacher");
-	GetDataFromTable(&Dbutils::Get_T_PKClass, "T_PKClass");
-	//将这个班级上的课给取出来
-	GetDataFromTable(&Dbutils::Get_T_PKClassCourse, "T_PKClassCourse");
-
-	//取出这个班级当中的连堂课和预排和合班这类的信息
-	GetDataFromTable(&Dbutils::Get_T_PKClassCourseOrgSectionSet, "T_PKClassCourseOrgSectionSet");
-	//更新策略，先让所有的节次都关联上，然后再进行删除，也就是先把所有信息都补上再做删除处理
-	//取出所有相关的不排课的时间
-	//一共分四种：教学班，行政班（教室），教师，科目
-	GetDataFromTable(&Dbutils::Get_T_PKClassCourseNonSection, "T_PKClassCourseNonSection");
-	GetDataFromTable(&Dbutils::Get_T_PKClassNonSection, "T_PKClassNonSection");
-	GetDataFromTable(&Dbutils::Get_T_PKTeacherNonSection, "T_PKTeacherNonSection");
-	GetDataFromTable(&Dbutils::Get_T_PKCourseNonSection, "T_PKCourseNonSection");
-
-	//因为这里系统当中明确连堂不和合班同时发生
-	//判断是否有合班的情况
-	if (!unionclstab_.empty()) {
-		UpdateUnionCls();
-	}
-	//判断是否有连堂的情况
-	//这个部分是重点，因为之前生成了所有对的教学班
-	//然后这里有很多教学班会因为连堂的关系需要被删除
-	//这里需要删除的就是教学班，教室，教师，科目这三个当中的部分
-	if (!continues_cls_tab_.empty()) {
-		UpdateContinueCls();
+		//UpdateUnionCls();
+		UpdataUnionNum();
 	}
 
 	//此处需要更新连堂和合班这两个集合当中所有节次的信息
@@ -85,8 +42,57 @@ string Dbutils::StartPk() {
 	sort(clsque_.begin(), clsque_.end());
 	//节次排序之后需要再将节次的index给到相应的教室，教师，科目的队列当中去
 	UpdateQueIndex();
+	//因为这里系统当中明确连堂不和合班同时发生
+
+	//判断是否有合班的情况
+	if (!unionclstab_.empty()) {
+		UpdateUnionCls();
+	}
 	return statement_;
 }
+
+//string Dbutils::StartPk() {
+//	//pktaskid_ = pktaskid;
+//	pktaskid_ = "2";
+//	statement_ = "";
+//	GetDBInfo();
+//	GetDataFromTable(&Dbutils::Get_T_PKTask, "T_PKTask");
+//	GetDataFromTable(&Dbutils::Get_T_PKCourse, "T_PKCourse");
+//	GetDataFromTable(&Dbutils::Get_T_PKTeacher, "T_PKTeacher");
+//	GetDataFromTable(&Dbutils::Get_T_PKClass, "T_PKClass");
+//	//将这个班级上的课给取出来
+//	GetDataFromTable(&Dbutils::Get_T_PKClassCourse, "T_PKClassCourse");
+//
+//	//取出这个班级当中的连堂课和预排和合班这类的信息
+//	GetDataFromTable(&Dbutils::Get_T_PKClassCourseOrgSectionSet, "T_PKClassCourseOrgSectionSet");
+//	//更新策略，先让所有的节次都关联上，然后再进行删除，也就是先把所有信息都补上再做删除处理
+//	//取出所有相关的不排课的时间
+//	//一共分四种：教学班，行政班（教室），教师，科目
+//	GetDataFromTable(&Dbutils::Get_T_PKClassCourseNonSection, "T_PKClassCourseNonSection");
+//	GetDataFromTable(&Dbutils::Get_T_PKClassNonSection, "T_PKClassNonSection");
+//	GetDataFromTable(&Dbutils::Get_T_PKTeacherNonSection, "T_PKTeacherNonSection");
+//	GetDataFromTable(&Dbutils::Get_T_PKCourseNonSection, "T_PKCourseNonSection");
+//
+//	//因为这里系统当中明确连堂不和合班同时发生
+//	//判断是否有合班的情况
+//	if (!unionclstab_.empty()) {
+//		UpdateUnionCls();
+//	}
+//	//判断是否有连堂的情况
+//	//这个部分是重点，因为之前生成了所有对的教学班
+//	//然后这里有很多教学班会因为连堂的关系需要被删除
+//	//这里需要删除的就是教学班，教室，教师，科目这三个当中的部分
+//	if (!continues_cls_tab_.empty()) {
+//		UpdateContinueCls();
+//	}
+//
+//	//此处需要更新连堂和合班这两个集合当中所有节次的信息
+//	//对节次进行一个排序，方便进行课表在初始化的时候的操作
+//	sort(clsque_.begin(), clsque_.end());
+//	//节次排序之后需要再将节次的index给到相应的教室，教师，科目的队列当中去
+//	UpdateQueIndex();
+//	return statement_;
+//}
 
 void Dbutils::CutString(string & s) {
 	s = s.substr(s.find("=") + 1, s.length() - s.find("=") - 1);
@@ -301,7 +307,7 @@ void Dbutils::Get_T_PKClassCourse(_RecordsetPtr & m_pRecordset) {
 void Dbutils::Get_T_PKClassCourseOrgSectionSet(_RecordsetPtr & m_pRecordset) {
 	//通过获得相应的每节课的信息然	
 	long long pkclasscourse, pkcombinateclassgroup, pkevensection;
-	long long pkteacher, pkcourse;
+	long long pkteacher, pkcourse, org_section_set_id;
 	int secionno, sfevensection, sfpre, section, weekday, sfcombinate;
 	int cptr;
 	m_pRecordset->MoveFirst();
@@ -311,8 +317,11 @@ void Dbutils::Get_T_PKClassCourseOrgSectionSet(_RecordsetPtr & m_pRecordset) {
 		sfpre = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("sfpre"))->Value);
 		sfcombinate = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("sfCombinate"))->Value);
 		sfevensection = static_cast<int>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("sfEvenSection"))->Value);
+		org_section_set_id = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("id"))->Value);
 
 		clsque_[unitstab_[pkclasscourse][secionno]].type_ = 1;//表示这个是一个普通的课程
+		clsque_[unitstab_[pkclasscourse][secionno]].org_section_set_id_ = org_section_set_id;
+		clsque_[unitstab_[pkclasscourse][secionno]].duration_ = 1;//初始课程长度，后期会修正
 		//连堂这部分需要单独判断
 		if(sfevensection){
 			//连堂设置	
@@ -342,7 +351,7 @@ void Dbutils::Get_T_PKClassCourseOrgSectionSet(_RecordsetPtr & m_pRecordset) {
 			//因为后期会有一个sort，所以导致index会改变，所以最后的index都需要重新设置
 			pkcombinateclassgroup = static_cast<long long>(m_pRecordset->Fields->GetItem(static_cast<_variant_t>("pkCombinateClassGroup"))->Value);
 			clsque_[unitstab_[pkclasscourse][secionno]].pkcombinateclassgroup_ = pkcombinateclassgroup;
-			//unionclstab_[pkcombinateclassgroup].push_back(unitstab_[pkclasscourse][secionno]);
+			unionclstab_[pkcombinateclassgroup].push_back(unitstab_[pkclasscourse][secionno]);
 		}
 		m_pRecordset->MoveNext();
 	}
@@ -493,6 +502,14 @@ void Dbutils::UpdateQueIndex() {
 	cout << "end of update index and union units" << endl;
 }
 
+void Dbutils::UpdataUnionNum() {
+	for (auto i = 0; i < clsque_.size(); i++) {
+		if (clsque_[i].pkcombinateclassgroup_ != -1) {
+			clsque_[i].union_num_ = unionclstab_[clsque_[i].pkcombinateclassgroup_].size();
+		}
+	}
+}
+
 void Dbutils::OutPutResult() {
 	GetDataFromTable(&Dbutils::Put_T_PkclassCourseSection, "T_PkclassCourseSection");
 }
@@ -503,12 +520,13 @@ void Dbutils::Put_T_PkclassCourseSection(_RecordsetPtr & m_pRecordset) {
 	for(auto c : res_.clsque_){
 		for (auto i = 0; i < c.duration_; i++) {
 			m_pRecordset->AddNew();
-			m_pRecordset->PutCollect("weekday", c.stime_.first);
-			m_pRecordset->PutCollect("section", c.stime_.second + i);
+			m_pRecordset->PutCollect("weekday", c.stime_.first + 1);
+			m_pRecordset->PutCollect("section", c.stime_.second + i + 1);
 			m_pRecordset->PutCollect("pkClassCourse", c.dbid_);
 			m_pRecordset->PutCollect("pkTeacher", c.teacher_->dbid_);
 			m_pRecordset->PutCollect("pkClass", c.ttbptr_->dbid_);
 			m_pRecordset->PutCollect("pkTaskId", var);
+			m_pRecordset->PutCollect("pkClassCourseOrgSectionSet", c.org_section_set_id_ + i);
 		}
 	}
 	m_pRecordset->Update();

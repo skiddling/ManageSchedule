@@ -54,33 +54,34 @@ bool ClassUnit::PutIntoTable(int day, int period, bool flag) {
 		}
 		for (auto i = 1; i < duration_; i++) {
 			ttbptr_->roomtable_[day][period + i] = this;
-			teacher_->AddClsInPeriod(day, period + i);
+			//teacher_->AddClsInPeriod(day, period + i);
 		}
 		headptr_ = &(ttbptr_->roomtable_[day][period]);
 	}
 	//做更新操作
 	ttbptr_->roomtable_[day][period] = this;
 	stime_ = make_pair(day, period);
-	teacher_->AddClsInPeriod(day, period);
+	hasbeenput_ = true;
+	//teacher_->AddClsInPeriod(day, period);
 	return true;
 }
 
-int ClassUnit::CalFitness() {
-	pair<int, int> tmp = stime_;
-	for (auto i = 0; i < duration_; i++) {
-		//1.被放在了不能放的时间段
-		if (canntbeput_.find(tmp) != canntbeput_.end())
-			return 1;
-		//2.安排的时间老师有冲突
-		if (teacher_->GetClsNumInPeriod(tmp) > 1)
-			return 1;
-		tmp.second++;
-	}
-	//3.辅助类型的课没有和普通类型的课放在同一天
-	if (type_ == 0 && teacher_->HasNormalClsInDay(stime_.first) == 0)
-		return 1;
-	return 0;
-}
+//int ClassUnit::CalFitness() {
+//	pair<int, int> tmp = stime_;
+//	for (auto i = 0; i < duration_; i++) {
+//		//1.被放在了不能放的时间段
+//		if (canntbeput_.find(tmp) != canntbeput_.end())
+//			return 1;
+//		//2.安排的时间老师有冲突
+//		if (teacher_->GetClsNumInPeriod(tmp) > 1)
+//			return 1;
+//		tmp.second++;
+//	}
+//	//3.辅助类型的课没有和普通类型的课放在同一天
+//	if (type_ == 0 && teacher_->HasNormalClsInDay(stime_.first) == 0)
+//		return 1;
+//	return 0;
+//}
 
 int ClassUnit::GetTeacherIdInVec() {
 	return teacher_->idinque_;
@@ -124,12 +125,12 @@ bool ClassUnit::CheckPeriod(pair<int, int> per) {
 	return true;
 }
 
-void ClassUnit::ChangeTime(pair<int, int> period) {
-	//把当前这节课的时间换到目标时间当中
-	teacher_->UpdateUnit(this, period);
-	stime_ = period;
-	headptr_ = &(ttbptr_->roomtable_[period.first][period.second]);
-}
+//void ClassUnit::ChangeTime(pair<int, int> period) {
+//	//把当前这节课的时间换到目标时间当中
+//	teacher_->UpdateUnit(this, period);
+//	stime_ = period;
+//	headptr_ = &(ttbptr_->roomtable_[period.first][period.second]);
+//}
 
 bool ClassUnit::CheckTimeEmpty(int d, int p) {
 	if (ttbptr_->roomtable_[d][p] == nullptr)return true;
@@ -161,29 +162,26 @@ bool ClassUnit::CheckTimeIllegal(pair<int, int> tim, pair<int, int> opt, int tag
 		return false;
 	}
 	//时间不合符空间
+	if (opt.first < 0 || opt.first >= ttbptr_->days_)return true;
 	if (opt.second < 0 || opt.second >= ttbptr_->periods_)return true;
 	if (tag == 0) {
 		//cross情况
 		return false;
 	}
-	//modify情况
+	//modify情况，需要考虑是否合法
 	//if (canntbeput_.find(make_pair(tim.first, tim.second)) != canntbeput_.end())return true;
 	if (canntbeput_.find(make_pair(opt.first, opt.second)) != canntbeput_.end())return true;
-	//非连堂课
-	//判断是否对换的是同一个课
 
+	//判断是否对换的是同一个课
 	int val = 0;
 	if (ttbptr_->roomtable_[opt.first][opt.second] != nullptr) {
 		if ((ttbptr_->roomtable_[opt.first][opt.second]->couptr_->dbid_) == dbid_)
 			val = 1;
 	}
-	//if((ttbptr_->roomtable_[opt.first][opt.second]->couptr_->dbid_) == dbid_ ? 1 : 0;
-	if (duration_ = 1) {
-		//这个课在当天已经上过了
-		if ((ttbptr_->course_time_)[couptr_->dbid_][opt.first] > val)return true;
-		//这个老师同时上两节课
-		if (teacher_->teach_time_[opt.first][opt.second] > 0)return true;
-	}
+	//这个课在当天已经上过了
+	if ((ttbptr_->course_time_)[couptr_->dbid_][opt.first] > val)return true;
+	//	//这个老师同时上两节课
+	if (teacher_->teach_time_[opt.first][opt.second] > val)return true;
 	return false;
 }
 
@@ -211,7 +209,8 @@ bool ClassUnit::CheckTimeCrash() {
 		return false;
 	}
 	//在不能排的时间当中
-	if (canntbeput_.find(make_pair(stime_.first, stime_.second)) != canntbeput_.end())return true;
+	//if (canntbeput_.find(make_pair(stime_.first, stime_.second)) != canntbeput_.end())return true;
+	if (canntbeput_.find(stime_) != canntbeput_.end())return true;
 	//这个课一天上了两次
 	if ((ttbptr_->course_time_)[couptr_->dbid_][stime_.first] > 1)return true;
 	//这个老师同时上两节课

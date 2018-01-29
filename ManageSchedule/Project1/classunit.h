@@ -8,6 +8,7 @@ class ClassUnit
 {
 public:
 	int crash_;//记录这个是不是冲突的课程
+	long long org_section_set_id_;
 	//data get from datebase
 	int secionno_ = -1;//这节课的序号
 	long long pkcombinateclassgroup_ = -1;//合班的组号，一起合班的课当做一个组有一个共同的组号
@@ -28,15 +29,17 @@ public:
 	bool hasbeenput_ = false;//表示这节课是否已经被放到课表当中，用于课表初始化
 	ClassUnit** headptr_ = nullptr;//用来标示是否是连堂课的第一节，指针内容是ttb当中指向第一节这个课的指针
 	int type_;//这节课的类型，1表示普通，0表示辅助，2表示是普通类型的连堂课，但是辅助类型不能和他一起在同一天出现
-	int duration_ = 1;//课时长度，刚开始创建都是1，之后会修改成连堂的数值
+	//int duration_ = 1;//课时长度，刚开始创建都是1，之后会修改成连堂的数值
+	int duration_;//课时长度，刚开始创建都是1，之后会修改成连堂的数值
 
 	bool preput_ = false;//表示这个课是否被预排了
 	pair<int, int> pretime_ = make_pair(-1, -1);
 
 	//vector<int> unioncls_;//合班课程，数值都是指向同一个schedule当中的下标
+	int union_num_ = 0;//合班的数量
 	vector<int> union_cls_index_;//合班课程，数值都是指向同一个schedule当中的下标
 	vector<ClassUnit*> unioncls_;//合班课程，数值都是指向同一个schedule当中的指针
-	vector<int> unioclsid_;//合班课程id
+	//vector<int> unioclsid_;//合班课程id
 	pair<int, int> headunit_;
 
 	//这个集合是最核心的两个集合
@@ -53,8 +56,8 @@ public:
 			return preput_ > c.preput_;
 		else if (duration_ != c.duration_)
 			return duration_ > c.duration_;
-		else if (unioclsid_.size() != c.unioclsid_.size())
-			return unioclsid_.size() > c.unioclsid_.size();
+		else if (union_num_ != c.union_num_)
+			return union_num_ > c.union_num_;
 		else if (canbeput_.size() != canbeput_.size())
 			return canbeput_.size() > c.canbeput_.size();
 		else if (dbid_ != c.dbid_)

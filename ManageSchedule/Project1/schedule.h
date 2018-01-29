@@ -13,7 +13,7 @@ public:
 	vector<Teacher> teachers_;//所有的教师的实体
 	vector<TimeTable> timetables_;//所有的班级课表，相当于是一个指针容器
 	vector<Course> couque_;
-	int outtime_ = 3;
+	int outtime_ = 1;
 	int crash_;
 	const double mxpocross_ = 0;
 
@@ -36,21 +36,21 @@ private:
 	void Modify();
 	//void UpdatePtrs();
 
-	void SwapClsUnit(ClassUnit& firstcls);
+	//void SwapClsUnit(ClassUnit& firstcls);
 	//flag = 1表示是在modify当中使用，0表示只是在cross当中使用
-	bool UnionClsUnits(bool flag, ClassUnit& firstcls, pair<int, int> timedelta);
+	//bool UnionClsUnits(bool flag, ClassUnit& firstcls, pair<int, int> timedelta);
 
-	//flag = 1表示是在modify当中使用，0表示只是在cross当中使用
-	bool AddUnitPtrIntoVec(bool flag, ClassUnit** cptr, pair<int, int> timedelta, 
-		int k, vector<vector<ClassUnit**>>& wait4swap, set<ClassUnit**>& clstab);
+	////flag = 1表示是在modify当中使用，0表示只是在cross当中使用
+	//bool AddUnitPtrIntoVec(bool flag, ClassUnit** cptr, pair<int, int> timedelta, 
+	//	int k, vector<vector<ClassUnit**>>& wait4swap, set<ClassUnit**>& clstab);
 
-	//flag = 1表示是在modify当中使用，0表示只是在cross当中使用
-	bool PutInSetVec(bool flag, ClassUnit** cptr, pair<int, int> timedelta, 
-		int k, int add, vector<vector<ClassUnit**>>& wait4swap, set<ClassUnit**>& clstab);
+	////flag = 1表示是在modify当中使用，0表示只是在cross当中使用
+	//bool PutInSetVec(bool flag, ClassUnit** cptr, pair<int, int> timedelta, 
+	//	int k, int add, vector<vector<ClassUnit**>>& wait4swap, set<ClassUnit**>& clstab);
 
-	bool CanBeSwap(bool flag, ClassUnit* c, pair<int, int> cperiod, ClassUnit* target, pair<int, int> tperiod);
+	//bool CanBeSwap(bool flag, ClassUnit* c, pair<int, int> cperiod, ClassUnit* target, pair<int, int> tperiod);
 
-	void SwapUnitsInVec(vector<vector<ClassUnit**>>& wait4swap);
+	//void SwapUnitsInVec(vector<vector<ClassUnit**>>& wait4swap);
 	void NeedToSwap(ClassUnit& firstcls, int tag);//tag 0 表示是cross，1表示是modify
 	void GetUnitsAvailableTime();//获得所有节次的能排的时间，其实是不能排的补集
 	void GetTeachTime();//每个老师都获得相应的各自上课时间

@@ -12,8 +12,8 @@ public:
 	//void StartPK();
 	
 	//DButil();
-	string StartPk(string pktaskid);
-	string StartPk();
+	string StartPk(string pktaskid = "2");
+	//string StartPk(string pktaskid);
 	void OutPutResult();
 
 	//data get from database
@@ -97,6 +97,7 @@ private:
 	void UpdateUnionCls();
 	void UpdateContinueCls();
 	void UpdateQueIndex();
+	void UpdataUnionNum();
 	void Put_T_PkclassCourseSection(_RecordsetPtr& m_pRecordset);
 };
 

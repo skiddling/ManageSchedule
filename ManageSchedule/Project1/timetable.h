@@ -32,7 +32,7 @@ public:
 	//vector<ClassUnit>& unitset_;//这个是要和schedule当中的units保持一致的
 	//vector<ClassUnit> cls_que_;//具体的指针序列
 	//vector<vector<bool>> tabletag_;//标记这个时节段是否能被安排放课，初始化课表用
-	void CalFitness(int& crash);
+	//void CalFitness(int& crash);
 	TimeTable();
 	TimeTable(string roomname, int days, int periods, long long class_id, long long dbid);
 	//TimeTable(const TimeTable& t);
@@ -42,7 +42,7 @@ public:
 	void UpdatePtrs();
 	ClassUnit** GetClsUnitPtr(int day, int period);
 
-	void SwapUnits(ClassUnit* origin, ClassUnit* target);
+	//void SwapUnits(ClassUnit* origin, ClassUnit* target);
 
 	static string GetName() {
 		return "TimeTable";

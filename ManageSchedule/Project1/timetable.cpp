@@ -1,14 +1,14 @@
 #include "timetable.h"
 
-void TimeTable::CalFitness(int& crash) {
-	/*
-	检查每一节课是否存在冲突
-	*/
-	for (auto& c : clsque_) {
-		crash += c->CalFitness();
-		//crash += unitset_[c].CalFitness();
-	}
-}
+//void TimeTable::CalFitness(int& crash) {
+//	/*
+//	检查每一节课是否存在冲突
+//	*/
+//	for (auto& c : clsque_) {
+//		crash += c->CalFitness();
+//		//crash += unitset_[c].CalFitness();
+//	}
+//}
 
 TimeTable::TimeTable() {
 }
@@ -75,6 +75,7 @@ bool TimeTable::PutIntoTable(ClassUnit * cptr) {
 				if (pd == 0)pp++;
 			}while (roomtable_[pd][pp] != nullptr);
 		}
+		//cptr->hasbeenput_ = true;
 		return true;
 	}
 	int i = pp, j = pd;
@@ -120,10 +121,10 @@ ClassUnit** TimeTable::GetClsUnitPtr(int day, int period) {
 	return &roomtable_[day][period];
 }
 
-void TimeTable::SwapUnits(ClassUnit * origin, ClassUnit * target) {
-	//交换这两个课
-	//先更新roomtable当中的内容
-	//存在空指针的情况
-	if(origin != NULL)origin->ChangeTime(target->stime_);
-	if(target != NULL)target->ChangeTime(origin->stime_);
-}
+//void TimeTable::SwapUnits(ClassUnit * origin, ClassUnit * target) {
+//	//交换这两个课
+//	//先更新roomtable当中的内容
+//	//存在空指针的情况
+//	if(origin != NULL)origin->ChangeTime(target->stime_);
+//	if(target != NULL)target->ChangeTime(origin->stime_);
+//}

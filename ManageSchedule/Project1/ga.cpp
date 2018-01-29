@@ -1,8 +1,9 @@
 #include "ga.h"
 
 GA::GA() {
-	num_of_threads_ = 1;
-	//num_of_threads_ = thread::hardware_concurrency();
+	//num_of_threads_ = 1;
+	num_of_threads_ = thread::hardware_concurrency();
+	thread_schedule_size_ = 5;
 	//生成一个初步的课表res_，然后通过拷贝到相应的各个具体课表当中去
 	//schedule copy construction 
 	schedules_ = vector<Schedule>(num_of_threads_ * thread_schedule_size_, res_);
@@ -14,18 +15,22 @@ GA::GA(vector<Course> courses, vector<Teacher> teachers, vector<TimeTable> timet
 	//但是最终课表当中的指针还是要再更新过的
 	res_.UpdatePtrs();
 	res_.init();
-	num_of_threads_ = 1;
-	thread_schedule_size_ = 1;
-	//num_of_threads_ = thread::hardware_concurrency();
+	//num_of_threads_ = 1;
+	thread_schedule_size_ = 5;
+	num_of_threads_ = thread::hardware_concurrency();
 	//生成一个初步的课表res_，然后通过拷贝到相应的各个具体课表当中去
 	//schedule copy construction 
 	schedules_ = vector<Schedule>(num_of_threads_ * thread_schedule_size_, res_);
 	//更新各自的指针
 	for (auto& s : schedules_) {
+	//for (auto i = 0; i < schedules_.size(); i++) {
 		s.UpdatePtrs();
+		//schedules_[i].UpdatePtrs();
 		//更新每个课表当中的指针
 		for (auto& c : s.clsque_) {
+		//for (auto j = 0; j < schedules_[i].clsque_.size(); j++) {
 			c.UpdateRoomPtr();
+			//schedules_[i].clsque_[j].UpdateRoomPtr();
 		}
 	}
 	cout << "end of Ga construct" << endl;
